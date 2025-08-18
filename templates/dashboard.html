@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-title">📊 Dashboard</div>
+  <div class="page-actions">
+    <a href="{% url 'componentes-new' %}" class="btn btn-success">+ Criar componente</a>
+    <a href="{% url 'produtos-new' %}" class="btn btn-primary">+ Criar produto</a>
+  </div>
+</div>
+
+<div class="blocks">
+  <div class="block col-4">
+    <div class="stat-title">Total de componentes</div>
+    <div class="stat-value">{{ total_componentes|default:"0" }}</div>
+    <div class="muted" style="margin-top:6px"><a href="{% url 'estoque-componentes' %}">Ver componentes →</a></div>
+  </div>
+  <div class="block col-4">
+    <div class="stat-title">Total de produtos</div>
+    <div class="stat-value">{{ total_produtos|default:"0" }}</div>
+    <div class="muted" style="margin-top:6px"><a href="{% url 'estoque-produtos' %}">Ver produtos →</a></div>
+  </div>
+  <div class="block col-4">
+    <div class="stat-title">Valor total em estoque</div>
+    <div class="stat-value">R$ {{ valor_total_estoque|default:"0,00" }}</div>
+    <div class="muted" style="margin-top:6px">
+      <a href="{% url 'estoque-componentes' %}">Componentes</a> ·
+      <a href="{% url 'estoque-produtos' %}">Produtos</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-title" style="font-size:20px;margin-top:18px">⚠️ Estoque baixo</div>
+<div class="blocks">
+  <div class="block col-6">
+    <div class="card-title">Componentes</div>
+    <table>
+      <thead><tr><th>Código</th><th>Nome</th><th class="right">Qtd</th></tr></thead>
+      <tbody>
+        {% if low_components %}
+          {% for c in low_components %}
+          <tr><td>{{ c.code }}</td><td>{{ c.name }}</td><td class="right">{{ c.inventory.qty_on_hand|default:"0" }}</td></tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="3" class="muted">Tudo ok por aqui ✨</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  <div class="block col-6">
+    <div class="card-title">Produtos</div>
+    <table>
+      <thead><tr><th>Código</th><th>Nome</th><th class="right">Qtd</th></tr></thead>
+      <tbody>
+        {% if low_products %}
+          {% for p in low_products %}
+          <tr><td>{{ p.code }}</td><td>{{ p.name }}</td><td class="right">{{ p.inventory.qty_on_hand|default:"0" }}</td></tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="3" class="muted">Tudo ok por aqui ✨</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="page-title" style="font-size:20px;margin-top:18px">🖨️ Andamento das impressões</div>
+{% if progress_items %}
+  {% for item in progress_items %}
+    <div class="block">
+      <div class="card-title">
+        {{ item.product.code }} — {{ item.product.name }}
+        <span class="badge">{{ item.total_printed|default:0 }} / {{ item.total_required|default:0 }}</span>
+      </div>
+      <div class="progress" title="{{ item.progress_percent|default:0|floatformat:0 }}%">
+        <span style="width: {{ item.progress_percent|default:0|floatformat:0 }}%;"></span>
+      </div>
+      <div class="muted" style="text-align:right;margin-top:6px">{{ item.progress_percent|default:0|floatformat:0 }}%</div>
+      <table style="margin-top:12px">
+        <thead><tr><th>Componente</th><th class="right">Qtd impressa</th><th style="width:260px">Progresso</th><th class="right">Tempo restante</th></tr></thead>
+        <tbody>
+          {% for r in item.rows %}
+          <tr>
+            <td>{{ r.component.code }} — {{ r.component.name }}</td>
+            <td class="right">{{ r.printed|default:0|floatformat:0 }} / {{ r.required|default:0|floatformat:0 }}</td>
+            <td><div class="progress"><span style="width: {{ r.progress|default:0|floatformat:0 }}%;"></span></div></td>
+            <td class="right">{{ r.time_remaining_hhmm|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="block"><div class="muted">Nenhuma impressão em andamento.</div></div>
+{% endif %}
+{% endblock %}

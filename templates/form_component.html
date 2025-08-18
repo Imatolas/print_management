@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <p class="muted">Tempo de impressão deve ser informado em <b>minutos</b>. O sistema converte para horas automaticamente.</p>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" type="submit">Salvar</button>
+      <a class="btn" href="{% url 'estoque-componentes' %}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

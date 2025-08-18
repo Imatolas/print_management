@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" type="submit">Salvar</button>
+      <a class="btn" href="{% url 'estoque-produtos' %}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

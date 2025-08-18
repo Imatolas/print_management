@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{% if form.instance.pk %}Editar produto{% else %}Criar produto{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header"><div class="page-title">{% if form.instance.pk %}Editar produto{% else %}Criar produto{% endif %}</div></div>
+<form method="post" class="block form">
+  {% csrf_token %}
+  <div class="field"><label for="{{ form.code.id_for_label }}">Código</label>{{ form.code }}</div>
+  <div class="field"><label for="{{ form.name.id_for_label }}">Nome</label>{{ form.name }}</div>
+  <div class="field"><label for="{{ form.description.id_for_label }}">Descrição</label>{{ form.description }}</div>
+  <div class="field"><label for="{{ form.qty_on_hand.id_for_label }}">Qtd em estoque</label>{{ form.qty_on_hand }}</div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Salvar</button>
+    <a class="btn" href="{% url 'estoque-produtos' %}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

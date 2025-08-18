@@ -1,0 +1,252 @@
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.contrib import messages
+
+from .models import Component, Product, BOMItem
+from .forms import ComponentForm, ProductForm
+
+# ----------------------
+# Helpers tolerantes a diferenças nos modelos
+# ----------------------
+
+def _get_any_attr(obj, names, default=0):
+    """Tenta retornar o primeiro atributo existente em names; senão, default."""
+    for n in names:
+        if hasattr(obj, n):
+            val = getattr(obj, n)
+            # se for callable (property com @property não é callable), ignora
+            try:
+                if callable(val):
+                    continue
+            except Exception:
+                pass
+            return val if val is not None else default
+    return default
+
+def _qty_on_hand_for(obj):
+    """
+    Tenta descobrir a quantidade em estoque para Component ou Product.
+    Primeiro procura um campo direto no objeto; depois tenta objetos relacionados comuns.
+    """
+    # campos diretos comuns
+    direct = _get_any_attr(
+        obj,
+        ["qty_on_hand", "stock", "quantity", "amount", "qtd", "qtd_estoque", "estoque"],
+        default=None,
+    )
+    if direct is not None:
+        try:
+            return float(direct)
+        except Exception:
+            return 0
+
+    # relacionamentos comuns
+    related_candidates = [
+        "inventory",
+        "componentinventory",
+        "productinventory",
+        "estoque",
+        "inventario",
+    ]
+    for rel in related_candidates:
+        if hasattr(obj, rel):
+            rel_obj = getattr(obj, rel)
+            if rel_obj is None:
+                continue
+            val = _get_any_attr(
+                rel_obj,
+                ["qty_on_hand", "stock", "quantity", "amount", "qtd", "qtd_estoque", "estoque"],
+                default=None,
+            )
+            if val is not None:
+                try:
+                    return float(val)
+                except Exception:
+                    return 0
+    return 0
+
+def _cost_for_component(c):
+    """Custo unitário de um componente com nomes de campo comuns."""
+    val = _get_any_attr(c, ["cost", "unit_cost", "custo", "preco"], default=0)
+    try:
+        return float(val)
+    except Exception:
+        return 0.0
+
+def _time_min_for_component(c):
+    """Tempo de impressão (min) por unidade (nomes comuns)."""
+    val = _get_any_attr(
+        c,
+        ["print_time_min", "print_time_minutes", "tempo_min", "tempo_minutos", "time_per_unit_min"],
+        default=0,
+    )
+    try:
+        return float(val)
+    except Exception:
+        return 0.0
+
+def _quantity_for_bom_item(item):
+    """Quantidade do item no BOM (nomes comuns)."""
+    val = _get_any_attr(item, ["quantity", "qty", "qtd"], default=0)
+    try:
+        return float(val)
+    except Exception:
+        return 0.0
+
+
+# ----------------------
+# DASHBOARD
+# ----------------------
+def dashboard(request):
+    # Totais simples
+    total_componentes = Component.objects.count()
+    total_produtos = Product.objects.count()
+
+    # Valor total em estoque (qtd * custo) sem depender de 'inventory'
+    valor_total_estoque = 0.0
+    for c in Component.objects.all():
+        qty = _qty_on_hand_for(c)
+        cost = _cost_for_component(c)
+        valor_total_estoque += qty * cost
+
+    # Estoque baixo (exemplo: <= 3 unidades)
+    low_components = []
+    for c in Component.objects.all():
+        if _qty_on_hand_for(c) <= 3:
+            low_components.append(c)
+
+    low_products = []
+    for p in Product.objects.all():
+        if _qty_on_hand_for(p) <= 3:
+            low_products.append(p)
+
+    # (Se futuramente você ligar a parte de ordens, alimente aqui)
+    progress_items = []
+
+    ctx = {
+        "total_componentes": total_componentes,
+        "total_produtos": total_produtos,
+        "valor_total_estoque": valor_total_estoque,
+        "low_components": low_components,
+        "low_products": low_products,
+        "progress_items": progress_items,
+    }
+    return render(request, "dashboard.html", ctx)
+
+
+# ----------------------
+# COMPONENTES – LISTAR / EDITAR / EXCLUIR
+# ----------------------
+def estoque_componentes_list(request):
+    q = request.GET.get("q", "").strip()
+    qs = Component.objects.all()
+    if q:
+        qs = qs.filter(Q(code__icontains=q) | Q(name__icontains=q))
+    components = list(qs.order_by("code", "name"))
+    return render(request, "componentes_list.html", {"components": components, "q": q})
+
+
+def componentes_new(request):
+    if request.method == "POST":
+        form = ComponentForm(request.POST)
+        if form.is_valid():
+            obj = form.save()
+            messages.success(request, f"Componente “{obj.name}” criado.")
+            return redirect("estoque-componentes")
+    else:
+        form = ComponentForm()
+    return render(request, "componentes_form.html", {"form": form})
+
+
+def componentes_edit(request, pk):
+    obj = get_object_or_404(Component, pk=pk)
+    if request.method == "POST":
+        form = ComponentForm(request.POST, instance=obj)
+        if form.is_valid():
+            obj = form.save()
+            messages.success(request, f"Componente “{obj.name}” atualizado.")
+            return redirect("estoque-componentes")
+    else:
+        form = ComponentForm(instance=obj)
+    return render(request, "componentes_form.html", {"form": form, "obj": obj})
+
+
+def componentes_delete(request, pk):
+    obj = get_object_or_404(Component, pk=pk)
+    if request.method == "POST":
+        name = obj.name
+        obj.delete()
+        messages.success(request, f"Componente “{name}” excluído.")
+        return redirect("estoque-componentes")
+    return render(request, "confirm_delete.html", {"title": "Excluir componente", "object": obj})
+
+
+# ----------------------
+# PRODUTOS – LISTAR / EDITAR / EXCLUIR
+# ----------------------
+def estoque_produtos_list(request):
+    q = request.GET.get("q", "").strip()
+    qs = Product.objects.all()
+    if q:
+        qs = qs.filter(Q(code__icontains=q) | Q(name__icontains=q))
+    products = list(qs.order_by("code", "name"))
+
+    # Calcula tempo total (min) e custo total a partir do BOM
+    rows = []
+    for p in products:
+        qty_on_hand = _qty_on_hand_for(p)
+
+        total_cost = 0.0
+        total_time_min = 0.0
+
+        for item in BOMItem.objects.filter(product=p).select_related("component"):
+            comp = item.component
+            qty = _quantity_for_bom_item(item)
+            total_cost += _cost_for_component(comp) * qty
+            total_time_min += _time_min_for_component(comp) * qty
+
+        rows.append(
+            {
+                "obj": p,
+                "qty_on_hand": qty_on_hand,
+                "total_cost": total_cost,
+                "total_time_min": total_time_min,
+            }
+        )
+    return render(request, "produtos_list.html", {"products": rows, "q": q})
+
+
+def produtos_new(request):
+    if request.method == "POST":
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            obj = form.save()
+            messages.success(request, f"Produto “{obj.name}” criado.")
+            return redirect("estoque-produtos")
+    else:
+        form = ProductForm()
+    return render(request, "produtos_form.html", {"form": form})
+
+
+def produtos_edit(request, pk):
+    obj = get_object_or_404(Product, pk=pk)
+    if request.method == "POST":
+        form = ProductForm(request.POST, instance=obj)
+        if form.is_valid():
+            obj = form.save()
+            messages.success(request, f"Produto “{obj.name}” atualizado.")
+            return redirect("estoque-produtos")
+    else:
+        form = ProductForm(instance=obj)
+    return render(request, "produtos_form.html", {"form": form, "obj": obj})
+
+
+def produtos_delete(request, pk):
+    obj = get_object_or_404(Product, pk=pk)
+    if request.method == "POST":
+        name = obj.name
+        obj.delete()
+        messages.success(request, f"Produto “{name}” excluído.")
+        return redirect("estoque-produtos")
+    return render(request, "confirm_delete.html", {"title": "Excluir produto", "object": obj})

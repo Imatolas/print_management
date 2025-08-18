@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}BOM • {{ product.code }}{% endblock %}
+{% block content %}
+<h1>BOM — {{ product.code }} • {{ product.name }}</h1>
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    <h3>Dados do produto</h3>
+    {{ form.as_p }}
+    <h3>Componentes</h3>
+    {{ formset.management_form }}
+    <table class="table">
+      <thead><tr><th>Componente</th><th>Quantidade</th><th>Excluir</th></tr></thead>
+      <tbody>
+      {% for f in formset %}
+        <tr>
+          <td>{{ f.component }}</td>
+          <td>{{ f.quantity }}</td>
+          <td>{{ f.DELETE }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" type="submit">Salvar</button>
+      <a class="btn" href="{% url 'estoque-produtos' %}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

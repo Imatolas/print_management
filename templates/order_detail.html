@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Ordem #{{ op.id }}{% endblock %}
+{% block content %}
+<h1>Ordem #{{ op.id }} • {{ op.product.code }} — {{ op.product.name }} ({{ op.quantity }})</h1>
+<div class="card">
+  <div class="progress progress-lg" title="{{ op.progress_percent|floatformat:0 }}%" style="margin-bottom:8px">
+    <span style="display:block;height:14px;background:#2563eb;width: {{ op.progress_percent|floatformat:0 }}%;"></span>
+  </div>
+  <div class="muted" style="text-align:right;margin-bottom:14px">{{ op.progress_percent|floatformat:0 }}%</div>
+
+  <table class="table">
+    <thead><tr><th>Componente</th><th class="right">Qtd impressa</th><th style="width:260px">Progresso</th><th class="right">Tempo restante</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr>
+        <td>{{ r.item.component.code }} — {{ r.item.component.name }}</td>
+        <td class="right">{{ r.printed }} / {{ r.required }}</td>
+        <td>
+          <div class="progress"><span style="width: {{ r.progress|floatformat:0 }}%;display:block;height:10px;background:#2563eb"></span></div>
+        </td>
+        <td class="right">{{ r.time_remaining_hhmm }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2>Registrar impressão</h2>
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    {{ log_form.as_p }}
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" type="submit">Adicionar</button>
+      <a class="btn" href="{% url 'estoque-produtos' %}">Voltar</a>
+      {% if op.status != 'done' %}
+        <a class="btn" href="{% url 'ordem-finish' op.id %}">Finalizar ordem</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

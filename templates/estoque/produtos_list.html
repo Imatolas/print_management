@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Produtos · Estoque{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Produtos</h1>
+    <p class="muted">Todos os produtos cadastrados.</p>
+  </div>
+  <div class="actions">
+    <a href="{% url 'produtos-new' %}" class="btn btn-primary">+ Criar produto</a>
+  </div>
+</div>
+
+<form method="get" class="search-bar">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buscar por código ou nome…" />
+  <button class="btn">Buscar</button>
+</form>
+
+<div class="notion-card">
+  <table class="nt-table">
+    <thead>
+      <tr>
+        <th style="width:160px">Código</th>
+        <th>Nome</th>
+        <th class="right" style="width:120px">Estoque</th>
+        <th class="right" style="width:140px">Tempo total (min)</th>
+        <th class="right" style="width:140px">Custo total (R$)</th>
+        <th style="width:60px"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if products %}
+        {% for row in products %}
+        <tr>
+          <td class="mono">{{ row.obj.code }}</td>
+          <td>{{ row.obj.name }}</td>
+          <td class="right">{{ row.qty_on_hand|default:"0" }}</td>
+          <td class="right">{{ row.total_time_min|floatformat:0 }}</td>
+          <td class="right">{{ row.total_cost|floatformat:2 }}</td>
+          <td class="right">
+            <div class="menu-wrap">
+              <button type="button" class="dots-btn" aria-haspopup="true" aria-expanded="false">⋯</button>
+              <div class="menu">
+                <a href="{% url 'produtos-edit' row.obj.pk %}">Editar</a>
+                <form method="post" action="{% url 'produtos-delete' row.obj.pk %}">
+                  {% csrf_token %}
+                  <button class="menu-link danger" onclick="return confirm('Excluir este produto?')">Excluir</button>
+                </form>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="6" class="muted">Nenhum produto encontrado.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 0 16px}
+.page-title{font-size:24px;font-weight:700;margin:0}
+.muted{color:#6b7280}
+.actions{display:flex;gap:8px}
+.btn{border:1px solid #e3e7ef;background:#fff;padding:8px 12px;border-radius:8px}
+.btn-primary{background:#2f5aff;color:#fff;border-color:#2f5aff}
+.search-bar{display:flex;gap:8px;margin:0 0 12px}
+.search-bar input{flex:1;border:1px solid #e3e7ef;border-radius:8px;padding:8px 12px}
+
+.notion-card{background:#fff;border:1px solid #edeff5;border-radius:12px;padding:8px}
+.nt-table{width:100%;border-collapse:separate;border-spacing:0}
+.nt-table thead th{font-size:12px;color:#6b7280;font-weight:600;text-align:left;padding:10px}
+.nt-table tbody td{padding:10px;border-top:1px solid #f1f4f9}
+.right{text-align:right}
+.mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
+
+.menu-wrap{position:relative;display:inline-block}
+.dots-btn{border:1px solid transparent;background:transparent;font-size:20px;line-height:1;border-radius:8px;padding:2px 6px;cursor:pointer}
+.dots-btn:focus{outline:none;border-color:#d1d5db}
+.menu{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #e5e7eb;border-radius:10px;min-width:160px;box-shadow:0 12px 24px rgba(0,0,0,0.08);display:none;z-index:20;padding:6px}
+.menu a{display:block;padding:8px 10px;text-decoration:none;color:#111827;border-radius:8px}
+.menu a:hover{background:#f3f4f6}
+.menu .menu-link{display:block;width:100%;text-align:left;padding:8px 10px;border:0;background:transparent;border-radius:8px;cursor:pointer}
+.menu .menu-link:hover{background:#f3f4f6}
+.menu .danger{color:#b91c1c}
+.menu-wrap.open .menu{display:block}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("click", function(e){
+  // fecha todos
+  document.querySelectorAll(".menu-wrap.open").forEach(el => el.classList.remove("open"));
+  // abre o clicado
+  const btn = e.target.closest(".dots-btn");
+  if (btn) {
+    e.preventDefault();
+    e.stopPropagation();
+    btn.parentElement.classList.add("open");
+  }
+});
+</script>
+{% endblock %}
