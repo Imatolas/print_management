@@ -250,3 +250,19 @@ def produtos_delete(request, pk):
         messages.success(request, f"Produto “{name}” excluído.")
         return redirect("estoque-produtos")
     return render(request, "confirm_delete.html", {"title": "Excluir produto", "object": obj})
+
+
+def relatorios(request):
+    return render(
+        request,
+        "stub.html",
+        {"title": "Relatórios", "text": "Página de relatórios em construção."},
+    )
+
+
+def configuracoes(request):
+    return render(
+        request,
+        "stub.html",
+        {"title": "Configurações", "text": "Página de configurações em construção."},
+    )
