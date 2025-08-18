@@ -25,6 +25,7 @@
       <tr>
         <th style="width:160px">Código</th>
         <th>Nome</th>
+        <th>Materiais</th>
         <th class="right" style="width:120px">Estoque</th>
         <th class="right" style="width:140px">Tempo total (min)</th>
         <th class="right" style="width:140px">Custo total (R$)</th>
@@ -37,6 +38,7 @@
         <tr>
           <td class="mono">{{ row.obj.code }}</td>
           <td>{{ row.obj.name }}</td>
+          <td>{{ row.materials }}</td>
           <td class="right">{{ row.qty_on_hand|default:"0" }}</td>
           <td class="right">{{ row.total_time_min|floatformat:0 }}</td>
           <td class="right">{{ row.total_cost|floatformat:2 }}</td>
@@ -55,7 +57,7 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr><td colspan="6" class="muted">Nenhum produto encontrado.</td></tr>
+        <tr><td colspan="7" class="muted">Nenhum produto encontrado.</td></tr>
       {% endif %}
     </tbody>
   </table>

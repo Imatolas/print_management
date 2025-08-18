@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinValueValidator
+from datetime import timedelta
 
 # ======== Helpers ========
 def minutes_to_hhmm(total_minutes: int) -> str:
@@ -14,7 +15,9 @@ class Component(models.Model):
     code = models.CharField("Código", max_length=32, unique=True)
     name = models.CharField("Nome", max_length=120)
     description = models.TextField("Descrição", blank=True)
+    material = models.CharField("Material", max_length=60, blank=True)
     unit_cost = models.DecimalField("Custo unitário (R$)", max_digits=10, decimal_places=2, default=0)
+    production_time = models.DurationField("Tempo de produção", default=timedelta())
     # tempo de impressão por unidade (em MINUTOS) — cadastra em minutos
     print_time_min = models.PositiveIntegerField("Tempo de impressão (min/un)", default=0)
 
@@ -27,7 +30,8 @@ class Component(models.Model):
         ordering = ["code"]
 
     def __str__(self):
-        return f"{self.code} - {self.name}"
+        mat = f" ({self.material})" if self.material else ""
+        return f"{self.code} - {self.name}{mat}"
 
     @property
     def print_time_hhmm(self):

@@ -196,19 +196,22 @@ def estoque_produtos_list(request):
         qs = qs.filter(Q(code__icontains=q) | Q(name__icontains=q))
     products = list(qs.order_by("code", "name"))
 
-    # Calcula tempo total (min) e custo total a partir do BOM
+    # Calcula tempo total (min), custo total e materiais a partir do BOM
     rows = []
     for p in products:
         qty_on_hand = _qty_on_hand_for(p)
 
         total_cost = 0.0
         total_time_min = 0.0
+        materials = set()
 
         for item in BOMItem.objects.filter(product=p).select_related("component"):
             comp = item.component
             qty = _quantity_for_bom_item(item)
             total_cost += _cost_for_component(comp) * qty
             total_time_min += _time_min_for_component(comp) * qty
+            if comp.material:
+                materials.add(comp.material)
 
         rows.append(
             {
@@ -216,6 +219,7 @@ def estoque_produtos_list(request):
                 "qty_on_hand": qty_on_hand,
                 "total_cost": total_cost,
                 "total_time_min": total_time_min,
+                "materials": ", ".join(sorted(materials)),
             }
         )
     return render(

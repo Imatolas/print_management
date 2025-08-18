@@ -6,9 +6,10 @@ class ComponentForm(forms.ModelForm):
     # Entrada sempre em minutos
     class Meta:
         model = Component
-        fields = ['code', 'name', 'description', 'unit_cost', 'print_time_min', 'qty_on_hand']
+        fields = ['code', 'name', 'description', 'material', 'unit_cost', 'production_time', 'print_time_min', 'qty_on_hand']
         widgets = {
-            'description': forms.Textarea(attrs={'rows':3})
+            'description': forms.Textarea(attrs={'rows':3}),
+            'production_time': forms.TextInput(attrs={'placeholder': 'hh:mm:ss'}),
         }
 
 class ProductForm(forms.ModelForm):
