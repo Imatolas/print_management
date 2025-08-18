@@ -144,7 +144,11 @@ def estoque_componentes_list(request):
     if q:
         qs = qs.filter(Q(code__icontains=q) | Q(name__icontains=q))
     components = list(qs.order_by("code", "name"))
-    return render(request, "componentes_list.html", {"components": components, "q": q})
+    return render(
+        request,
+        "estoque/componentes_list.html",
+        {"components": components, "q": q},
+    )
 
 
 def componentes_new(request):
@@ -214,7 +218,11 @@ def estoque_produtos_list(request):
                 "total_time_min": total_time_min,
             }
         )
-    return render(request, "produtos_list.html", {"products": rows, "q": q})
+    return render(
+        request,
+        "estoque/produtos_list.html",
+        {"products": rows, "q": q},
+    )
 
 
 def produtos_new(request):
