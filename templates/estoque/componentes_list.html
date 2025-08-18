@@ -25,6 +25,7 @@
       <tr>
         <th style="width:160px">Código</th>
         <th>Nome</th>
+        <th>Material</th>
         <th class="right" style="width:120px">Estoque</th>
         <th style="width:60px"></th>
       </tr>
@@ -35,6 +36,7 @@
         <tr>
           <td class="mono">{{ c.code }}</td>
           <td>{{ c.name }}</td>
+          <td>{{ c.material }}</td>
           <td class="right">{{ c.inventory.qty_on_hand|default:"0" }}</td>
           <td class="right">
             <div class="menu-wrap">
@@ -51,7 +53,7 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr><td colspan="4" class="muted">Nenhum componente encontrado.</td></tr>
+        <tr><td colspan="5" class="muted">Nenhum componente encontrado.</td></tr>
       {% endif %}
     </tbody>
   </table>
