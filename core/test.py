@@ -15,6 +15,18 @@ class ProductBOMTests(TestCase):
         BOMItem.objects.create(product=prod, component=comp, quantity=6)
         self.assertEqual(prod.total_cost, 60)
 
+    def test_product_creation_redirects_to_bom(self):
+        data = {
+            "code": "P1",
+            "name": "Prod",
+            "description": "",
+            "qty_on_hand": "0",
+        }
+        response = self.client.post(reverse("produtos-new"), data)
+        prod = Product.objects.get(code="P1")
+        self.assertRedirects(response, reverse("produtos-bom", args=[prod.pk]))
+
+
     def test_add_component_via_view(self):
         comp = Component.objects.create(code="C1", name="Comp", unit_cost=5)
         prod = Product.objects.create(code="P1", name="Prod")
