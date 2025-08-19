@@ -23,7 +23,8 @@
     .brand{display:flex;align-items:center;gap:10px;font-weight:700;margin-bottom:16px}
     .brand .dot{width:28px;height:28px;border-radius:6px;background:#4f46e5;display:inline-block}
     nav a{display:block;padding:8px 10px;margin:2px 0;border-radius:8px;color:var(--sidebar-muted)}
-    nav a.active, nav a:hover{background:#111827;color:#fff}
+    nav a:hover{background:#111827;color:#fff}
+    nav a.active{background:#111827;color:#fff;font-weight:700}
     .subnav{padding-left:8px}
     .main{padding:22px 26px}
     .page-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
@@ -64,14 +65,14 @@
     <aside class="sidebar">
       <div class="brand"><span class="dot"></span> MFG</div>
       <nav>
-        <a href="{% url 'dashboard' %}" id="nav-dash">Dashboard</a>
+        <a href="{% url 'dashboard' %}" id="nav-dash" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>Dashboard</a>
         <div class="muted" style="padding:8px 10px 4px;font-size:12px;">Estoque</div>
         <div class="subnav">
-          <a href="{% url 'estoque-componentes' %}" id="nav-comp">Componentes</a>
-          <a href="{% url 'estoque-produtos' %}" id="nav-prod">Produtos</a>
+          <a href="{% url 'estoque-componentes' %}" id="nav-comp" {% if request.resolver_match.url_name == 'estoque-componentes' %}class="active"{% endif %}>Componentes</a>
+          <a href="{% url 'estoque-produtos' %}" id="nav-prod" {% if request.resolver_match.url_name == 'estoque-produtos' %}class="active"{% endif %}>Produtos</a>
         </div>
-        <a href="{% url 'relatorios' %}" id="nav-rel">Relatórios</a>
-        <a href="{% url 'configuracoes' %}" id="nav-config">Configurações</a>
+        <a href="{% url 'relatorios' %}" id="nav-rel" {% if request.resolver_match.url_name == 'relatorios' %}class="active"{% endif %}>Relatórios</a>
+        <a href="{% url 'configuracoes' %}" id="nav-config" {% if request.resolver_match.url_name == 'configuracoes' %}class="active"{% endif %}>Configurações</a>
       </nav>
       <div style="margin-top:auto;font-size:12px;color:#9ca3af">v0.5 • Django</div>
     </aside>
