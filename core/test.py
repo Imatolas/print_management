@@ -26,6 +26,7 @@ class ProductBOMTests(TestCase):
         prod = Product.objects.get(code="P1")
         self.assertRedirects(response, reverse("produtos-bom", args=[prod.pk]))
 
+
     def test_add_component_via_view(self):
         comp = Component.objects.create(code="C1", name="Comp", unit_cost=5)
         prod = Product.objects.create(code="P1", name="Prod")
