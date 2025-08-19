@@ -230,26 +230,34 @@ def estoque_produtos_list(request):
 def produtos_new(request):
     if request.method == "POST":
         form = ProductForm(request.POST)
-        if form.is_valid():
-            obj = form.save()
-            messages.success(request, f"Produto “{obj.name}” criado. Adicione os componentes.")
-            return redirect("produtos-bom", pk=obj.pk)
+        product = Product()
+        formset = BOMFormSet(request.POST, instance=product)
+        if form.is_valid() and formset.is_valid():
+            product = form.save()
+            formset.instance = product
+            formset.save()
+            messages.success(request, f"Produto “{product.name}” criado.")
+            return redirect("estoque-produtos")
     else:
         form = ProductForm()
-    return render(request, "produtos_form.html", {"form": form})
+        formset = BOMFormSet(instance=Product())
+    return render(request, "produtos_form.html", {"form": form, "formset": formset})
 
 
 def produtos_edit(request, pk):
     obj = get_object_or_404(Product, pk=pk)
     if request.method == "POST":
         form = ProductForm(request.POST, instance=obj)
-        if form.is_valid():
-            obj = form.save()
+        formset = BOMFormSet(request.POST, instance=obj)
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
             messages.success(request, f"Produto “{obj.name}” atualizado.")
             return redirect("estoque-produtos")
     else:
         form = ProductForm(instance=obj)
-    return render(request, "produtos_form.html", {"form": form, "obj": obj})
+        formset = BOMFormSet(instance=obj)
+    return render(request, "produtos_form.html", {"form": form, "formset": formset, "obj": obj})
 
 
 def produtos_delete(request, pk):
@@ -262,24 +270,8 @@ def produtos_delete(request, pk):
     return render(request, "confirm_delete.html", {"title": "Excluir produto", "object": obj})
 
 
-def produtos_bom(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    if request.method == "POST":
-        form = ProductForm(request.POST, instance=product)
-        formset = BOMFormSet(request.POST, instance=product)
-        if form.is_valid() and formset.is_valid():
-            form.save()
-            formset.save()
-            messages.success(request, f"Componentes do produto “{product.name}” atualizados.")
-            return redirect("estoque-produtos")
-    else:
-        form = ProductForm(instance=product)
-        formset = BOMFormSet(instance=product)
-    return render(
-        request,
-        "form_bom.html",
-        {"form": form, "formset": formset, "product": product},
-    )
+# A view específica para editar apenas componentes do produto não é mais necessária,
+# pois `produtos_edit` já lida com o formulário principal e o BOM.
 
 
 def relatorios(request):
