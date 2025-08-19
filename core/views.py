@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.contrib import messages
 
 from .models import Component, Product, BOMItem
-from .forms import ComponentForm, ProductForm
+from .forms import ComponentForm, ProductForm, BOMFormSet
 
 # ----------------------
 # Helpers tolerantes a diferenças nos modelos
@@ -201,14 +201,12 @@ def estoque_produtos_list(request):
     for p in products:
         qty_on_hand = _qty_on_hand_for(p)
 
-        total_cost = 0.0
         total_time_min = 0.0
         materials = set()
 
         for item in BOMItem.objects.filter(product=p).select_related("component"):
             comp = item.component
             qty = _quantity_for_bom_item(item)
-            total_cost += _cost_for_component(comp) * qty
             total_time_min += _time_min_for_component(comp) * qty
             if comp.material:
                 materials.add(comp.material)
@@ -217,7 +215,7 @@ def estoque_produtos_list(request):
             {
                 "obj": p,
                 "qty_on_hand": qty_on_hand,
-                "total_cost": total_cost,
+                "total_cost": p.total_cost,
                 "total_time_min": total_time_min,
                 "materials": ", ".join(sorted(materials)),
             }
@@ -234,8 +232,8 @@ def produtos_new(request):
         form = ProductForm(request.POST)
         if form.is_valid():
             obj = form.save()
-            messages.success(request, f"Produto “{obj.name}” criado.")
-            return redirect("estoque-produtos")
+            messages.success(request, f"Produto “{obj.name}” criado. Adicione os componentes.")
+            return redirect("produtos-bom", pk=obj.pk)
     else:
         form = ProductForm()
     return render(request, "produtos_form.html", {"form": form})
@@ -262,6 +260,26 @@ def produtos_delete(request, pk):
         messages.success(request, f"Produto “{name}” excluído.")
         return redirect("estoque-produtos")
     return render(request, "confirm_delete.html", {"title": "Excluir produto", "object": obj})
+
+
+def produtos_bom(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == "POST":
+        form = ProductForm(request.POST, instance=product)
+        formset = BOMFormSet(request.POST, instance=product)
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            messages.success(request, f"Componentes do produto “{product.name}” atualizados.")
+            return redirect("estoque-produtos")
+    else:
+        form = ProductForm(instance=product)
+        formset = BOMFormSet(instance=product)
+    return render(
+        request,
+        "form_bom.html",
+        {"form": form, "formset": formset, "product": product},
+    )
 
 
 def relatorios(request):
