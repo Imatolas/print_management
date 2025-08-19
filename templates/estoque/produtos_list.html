@@ -46,7 +46,6 @@
             <div class="menu-wrap">
               <button type="button" class="dots-btn" aria-haspopup="true" aria-expanded="false">⋯</button>
               <div class="menu">
-                <a href="{% url 'produtos-bom' row.obj.pk %}">Componentes</a>
                 <a href="{% url 'produtos-edit' row.obj.pk %}">Editar</a>
                 <form method="post" action="{% url 'produtos-delete' row.obj.pk %}">
                   {% csrf_token %}
