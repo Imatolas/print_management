@@ -62,6 +62,14 @@ class Product(models.Model):
     def estimated_build_hours(self, quantity: int) -> str:
         return minutes_to_hhmm(self.bom_required_minutes(quantity))
 
+    @property
+    def total_cost(self) -> float:
+        """Custo total somando os componentes do produto."""
+        total = 0.0
+        for item in self.bom_items.select_related("component"):
+            total += float(item.component.unit_cost) * item.quantity
+        return total
+
 class BOMItem(models.Model):
     product = models.ForeignKey(Product, related_name="bom_items", on_delete=models.CASCADE)
     component = models.ForeignKey(Component, related_name="bom_items", on_delete=models.PROTECT)
