@@ -12,14 +12,22 @@
   <h3>Componentes</h3>
   {{ formset.management_form }}
   <table class="table">
-    <thead><tr><th>Componente</th><th>Quantidade</th><th>Excluir</th></tr></thead>
+    <thead><tr><th>Componente</th><th>Quantidade</th><th style="width:60px"></th></tr></thead>
     <tbody id="bom-items">
-    <tbody>
     {% for f in formset %}
       <tr>
         <td>{{ f.component }}</td>
         <td>{{ f.quantity }}</td>
-        <td>{{ f.DELETE }}</td>
+        <td class="right">
+          {{ f.DELETE }}
+          <div class="menu-wrap">
+            <button type="button" class="dots-btn" aria-haspopup="true" aria-expanded="false">⋯</button>
+            <div class="menu">
+              <a href="#" class="edit-row">Editar</a>
+              <button type="button" class="menu-link danger delete-row">Excluir</button>
+            </div>
+          </div>
+        </td>
       </tr>
     {% endfor %}
     </tbody>
@@ -30,26 +38,84 @@
     <tr>
       <td>{{ formset.empty_form.component }}</td>
       <td>{{ formset.empty_form.quantity }}</td>
-      <td>{{ formset.empty_form.DELETE }}</td>
+      <td class="right">
+        {{ formset.empty_form.DELETE }}
+        <div class="menu-wrap">
+          <button type="button" class="dots-btn" aria-haspopup="true" aria-expanded="false">⋯</button>
+          <div class="menu">
+            <a href="#" class="edit-row">Editar</a>
+            <button type="button" class="menu-link danger delete-row">Excluir</button>
+          </div>
+        </div>
+      </td>
     </tr>
   </template>
-  <script>
-    const addBtn = document.getElementById('add-row');
-    const totalForms = document.getElementById('id_{{ formset.prefix }}-TOTAL_FORMS');
-    const tableBody = document.getElementById('bom-items');
-    const emptyForm = document.getElementById('empty-form').innerHTML;
-
-    addBtn.addEventListener('click', function() {
-        const index = parseInt(totalForms.value);
-        const row = emptyForm.replace(/__prefix__/g, index);
-        tableBody.insertAdjacentHTML('beforeend', row);
-        totalForms.value = index + 1;
-    });
-  </script>
   {% endif %}
   <div class="form-actions">
     <button class="btn btn-primary" type="submit">Salvar</button>
     <a class="btn" href="{% url 'estoque-produtos' %}">Cancelar</a>
   </div>
 </form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.menu-wrap{position:relative;display:inline-block}
+.dots-btn{border:1px solid transparent;background:transparent;font-size:20px;line-height:1;border-radius:8px;padding:2px 6px;cursor:pointer}
+.dots-btn:focus{outline:none;border-color:var(--line)}
+.menu{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid var(--line);border-radius:10px;min-width:160px;box-shadow:0 12px 24px rgba(0,0,0,0.08);display:none;z-index:20;padding:6px}
+.menu a{display:block;padding:8px 10px;text-decoration:none;color:var(--text);border-radius:8px}
+.menu a:hover{background:#f3f4f6}
+.menu .menu-link{display:block;width:100%;text-align:left;padding:8px 10px;border:0;background:transparent;border-radius:8px;cursor:pointer}
+.menu .menu-link:hover{background:#f3f4f6}
+.menu .danger{color:var(--danger)}
+.menu-wrap.open .menu{display:block}
+input[name$="-DELETE"]{display:none}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const addBtn = document.getElementById('add-row');
+const totalForms = document.getElementById('id_{{ formset.prefix }}-TOTAL_FORMS');
+const tableBody = document.getElementById('bom-items');
+const emptyForm = document.getElementById('empty-form').innerHTML;
+
+addBtn && addBtn.addEventListener('click', function() {
+    const index = parseInt(totalForms.value);
+    const row = emptyForm.replace(/__prefix__/g, index);
+    tableBody.insertAdjacentHTML('beforeend', row);
+    totalForms.value = index + 1;
+});
+
+document.addEventListener('click', function(e){
+  document.querySelectorAll('.menu-wrap.open').forEach(el => el.classList.remove('open'));
+
+  const btn = e.target.closest('.dots-btn');
+  if(btn){
+    e.preventDefault();
+    e.stopPropagation();
+    btn.parentElement.classList.add('open');
+  }
+
+  const del = e.target.closest('.delete-row');
+  if(del){
+    e.preventDefault();
+    const row = del.closest('tr');
+    const delInput = row.querySelector('input[name$="-DELETE"]');
+    if(delInput){ delInput.checked = true; }
+    row.style.display = 'none';
+  }
+
+  const edit = e.target.closest('.edit-row');
+  if(edit){
+    e.preventDefault();
+    const row = edit.closest('tr');
+    const select = row.querySelector('select');
+    if(select && select.value){
+      window.open(`/componentes/${select.value}/editar/`, '_blank');
+    }
+  }
+});
+</script>
 {% endblock %}
