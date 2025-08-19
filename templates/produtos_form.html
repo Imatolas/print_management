@@ -13,6 +13,7 @@
   {{ formset.management_form }}
   <table class="table">
     <thead><tr><th>Componente</th><th>Quantidade</th><th>Excluir</th></tr></thead>
+    <tbody id="bom-items">
     <tbody>
     {% for f in formset %}
       <tr>
@@ -23,6 +24,28 @@
     {% endfor %}
     </tbody>
   </table>
+  <button type="button" class="btn" id="add-row">Adicionar linha</button>
+  <p><a href="{% url 'componentes-new' %}" target="_blank">Criar novo componente</a></p>
+  <template id="empty-form">
+    <tr>
+      <td>{{ formset.empty_form.component }}</td>
+      <td>{{ formset.empty_form.quantity }}</td>
+      <td>{{ formset.empty_form.DELETE }}</td>
+    </tr>
+  </template>
+  <script>
+    const addBtn = document.getElementById('add-row');
+    const totalForms = document.getElementById('id_{{ formset.prefix }}-TOTAL_FORMS');
+    const tableBody = document.getElementById('bom-items');
+    const emptyForm = document.getElementById('empty-form').innerHTML;
+
+    addBtn.addEventListener('click', function() {
+        const index = parseInt(totalForms.value);
+        const row = emptyForm.replace(/__prefix__/g, index);
+        tableBody.insertAdjacentHTML('beforeend', row);
+        totalForms.value = index + 1;
+    });
+  </script>
   <p><a href="{% url 'componentes-new' %}" target="_blank">Criar novo componente</a></p>
   {% endif %}
   <div class="form-actions">
