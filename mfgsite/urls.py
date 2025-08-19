@@ -21,7 +21,6 @@ urlpatterns = [
     path("produtos/novo/", v.produtos_new, name="produtos-new"),
     path("produtos/<int:pk>/editar/", v.produtos_edit, name="produtos-edit"),
     path("produtos/<int:pk>/excluir/", v.produtos_delete, name="produtos-delete"),
-    path("produtos/<int:pk>/componentes/", v.produtos_bom, name="produtos-bom"),
 
     # Relatórios e Configurações
     path("relatorios/", v.relatorios, name="relatorios"),
