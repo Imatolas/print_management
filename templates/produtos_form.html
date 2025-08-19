@@ -14,6 +14,7 @@
   <table class="table">
     <thead><tr><th>Componente</th><th>Quantidade</th><th>Excluir</th></tr></thead>
     <tbody id="bom-items">
+    <tbody>
     {% for f in formset %}
       <tr>
         <td>{{ f.component }}</td>
@@ -45,6 +46,7 @@
         totalForms.value = index + 1;
     });
   </script>
+  <p><a href="{% url 'componentes-new' %}" target="_blank">Criar novo componente</a></p>
   {% endif %}
   <div class="form-actions">
     <button class="btn btn-primary" type="submit">Salvar</button>
