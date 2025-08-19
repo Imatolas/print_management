@@ -24,8 +24,8 @@
     {% endfor %}
     </tbody>
   </table>
-  <button type="button" class="btn" id="add-row">Adicionar linha</button>
-  <p><a href="{% url 'componentes-new' %}" target="_blank">Criar novo componente</a></p>
+  <button type="button" class="btn" id="add-row"><span class="muted">+</span> Adicionar linha</button>
+  <p><a class="btn" href="{% url 'componentes-new' %}" target="_blank"><span class="muted">+</span> Criar novo componente</a></p>
   <template id="empty-form">
     <tr>
       <td>{{ formset.empty_form.component }}</td>
@@ -46,7 +46,6 @@
         totalForms.value = index + 1;
     });
   </script>
-  <p><a href="{% url 'componentes-new' %}" target="_blank">Criar novo componente</a></p>
   {% endif %}
   <div class="form-actions">
     <button class="btn btn-primary" type="submit">Salvar</button>
