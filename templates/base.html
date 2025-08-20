@@ -11,9 +11,9 @@
   <style>
     :root{
       --bg:#f7f7f5; --card:#fff; --muted:#6b7280; --line:#ececec;
-      --text:#111827; --accent:#2563eb; --accent-600:#1d4ed8;
+      --text:#111827; --accent:#0052a5; --accent-600:#003b7a;
       --danger:#e11d48; --success:#16a34a;
-      --sidebar:#0f172a; --sidebar-muted:#94a3b8;
+      --sidebar:#001f3f; --sidebar-muted:#d1d5db;
     }
     *{box-sizing:border-box} html,body{height:100%}
     body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -21,10 +21,10 @@
     .app{display:grid;grid-template-columns:260px 1fr; min-height:100vh}
     .sidebar{background:var(--sidebar);color:#e5e7eb;padding:18px 14px;display:flex;flex-direction:column}
     .brand{display:flex;align-items:center;gap:10px;font-weight:700;margin-bottom:16px}
-    .brand .dot{width:28px;height:28px;border-radius:6px;background:#4f46e5;display:inline-block}
+    .brand .dot{width:28px;height:28px;border-radius:6px;background:var(--accent);display:inline-block}
     nav a{display:block;padding:8px 10px;margin:2px 0;border-radius:8px;color:var(--sidebar-muted)}
-    nav a:hover{background:#111827;color:#fff}
-    nav a.active{background:#111827;color:#fff;font-weight:700}
+    nav a:hover{background:var(--accent-600);color:#fff}
+    nav a.active{background:var(--accent-600);color:#fff;font-weight:700}
     .subnav{padding-left:8px}
     .main{padding:22px 26px}
     .page-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
