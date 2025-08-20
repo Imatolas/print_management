@@ -2,9 +2,9 @@
 {% block title %}Ordem #{{ op.id }}{% endblock %}
 {% block content %}
 <h1>Ordem #{{ op.id }} • {{ op.product.code }} — {{ op.product.name }} ({{ op.quantity }})</h1>
-<div class="card">
+<div class="block">
   <div class="progress progress-lg" title="{{ op.progress_percent|floatformat:0 }}%" style="margin-bottom:8px">
-    <span style="display:block;height:14px;background:#2563eb;width: {{ op.progress_percent|floatformat:0 }}%;"></span>
+    <span style="display:block;height:14px;background:var(--accent);width: {{ op.progress_percent|floatformat:0 }}%;"></span>
   </div>
   <div class="muted" style="text-align:right;margin-bottom:14px">{{ op.progress_percent|floatformat:0 }}%</div>
 
@@ -16,7 +16,7 @@
         <td>{{ r.item.component.code }} — {{ r.item.component.name }}</td>
         <td class="right">{{ r.printed }} / {{ r.required }}</td>
         <td>
-          <div class="progress"><span style="width: {{ r.progress|floatformat:0 }}%;display:block;height:10px;background:#2563eb"></span></div>
+          <div class="progress"><span style="width: {{ r.progress|floatformat:0 }}%;display:block;height:10px;background:var(--accent)"></span></div>
         </td>
         <td class="right">{{ r.time_remaining_hhmm }}</td>
       </tr>
@@ -26,7 +26,7 @@
 </div>
 
 <h2>Registrar impressão</h2>
-<div class="card">
+<div class="block">
   <form method="post">
     {% csrf_token %}
     {{ log_form.as_p }}
