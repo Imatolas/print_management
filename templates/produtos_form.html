@@ -20,7 +20,6 @@
         <td>{{ f.quantity }}</td>
         <td class="right">
           {{ f.DELETE }}
-          {{ f.DELETE.as_widget(attrs={'class': 'delete-field'}) }}
           <div class="menu-wrap">
             <button type="button" class="dots-btn" aria-haspopup="true" aria-expanded="false">⋯</button>
             <div class="menu">
@@ -41,7 +40,6 @@
       <td>{{ formset.empty_form.quantity }}</td>
       <td class="right">
         {{ formset.empty_form.DELETE }}
-        {{ formset.empty_form.DELETE.as_widget(attrs={'class': 'delete-field'}) }}
         <div class="menu-wrap">
           <button type="button" class="dots-btn" aria-haspopup="true" aria-expanded="false">⋯</button>
           <div class="menu">
@@ -73,7 +71,6 @@
 .menu .danger{color:var(--danger)}
 .menu-wrap.open .menu{display:block}
 input[name$="-DELETE"]{display:none}
-.delete-field{display:none}
 </style>
 {% endblock %}
 
