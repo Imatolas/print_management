@@ -304,6 +304,7 @@ def producao(request):
                 "components": comps,
             }
         )
+        orders.append({"obj": op, "total_time": minutes_to_hhmm(total_min)})
 
     return render(request, "producao.html", {"form": form, "orders": orders})
 
@@ -329,6 +330,7 @@ def producao_delete(request, pk):
         "confirm_delete.html",
         {"title": "Excluir produção", "object": obj},
     )
+
 
 
 # A view específica para editar apenas componentes do produto não é mais necessária,
