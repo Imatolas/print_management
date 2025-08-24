@@ -305,6 +305,8 @@ def producao(request):
             }
         )
 
+        orders.append({"obj": op, "total_time": minutes_to_hhmm(total_min)})
+
     return render(request, "producao.html", {"form": form, "orders": orders})
 
 
