@@ -137,8 +137,7 @@ class PrintTimeAPIView(APIView):
         component_id = data.get("component_id")
         quantity = int(data.get("quantity", 0))
         component = get_object_or_404(Component, pk=component_id)
-        total_speed = sum(p.speed_factor for p in Printer.objects.filter(is_active=True)) or 1
-        total_minutes = (component.print_time_min * quantity) / total_speed
+        total_minutes = component.print_time_min * quantity
         return Response({
             "time_min": total_minutes,
             "time_hhmm": minutes_to_hhmm(total_minutes),
