@@ -27,6 +27,7 @@ urlpatterns = [
     path("producao/<int:pk>/editar/", v.producao_edit, name="producao-edit"),
     path("producao/<int:pk>/excluir/", v.producao_delete, name="producao-delete"),
 
+
     # Relatórios e Configurações
     path("relatorios/", v.relatorios, name="relatorios"),
     path("configuracoes/", v.configuracoes, name="configuracoes"),

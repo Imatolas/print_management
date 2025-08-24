@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Produção{% endblock %}
+
 {% block extra_css %}
 <style>
   .action-menu{position:relative;cursor:pointer;}
@@ -9,6 +10,8 @@
   .action-menu .menu a{display:block;padding:4px 12px;white-space:nowrap;}
 </style>
 {% endblock %}
+
+
 {% block content %}
 <div class="page-header"><div class="page-title">Produção</div></div>
 <form method="post" class="block form">
@@ -22,11 +25,16 @@
 <div class="page-title" style="font-size:20px;margin-top:18px">Produções em andamento</div>
 <div class="block">
   <table>
+
     <thead><tr><th>Produto</th><th class="right">Quantidade</th><th class="right">Tempo total</th><th></th></tr></thead>
+
+    <thead><tr><th>Produto</th><th class="right">Quantidade</th><th class="right">Tempo total</th></tr></thead>
+
     <tbody>
     {% if orders %}
       {% for o in orders %}
       <tr>
+
         <td colspan="4">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
             <details style="flex:1;">
@@ -64,6 +72,37 @@
       {% endfor %}
     {% else %}
       <tr><td colspan="4" class="muted">Nenhuma produção em andamento.</td></tr>
+        <td colspan="3">
+          <details>
+            <summary style="display:flex;justify-content:space-between;">
+              <span>{{ o.obj.product.code }} — {{ o.obj.product.name }}</span>
+              <span class="right" style="min-width:80px;text-align:right;">{{ o.obj.quantity }}</span>
+              <span class="right" style="min-width:80px;text-align:right;">{{ o.total_time }}</span>
+            </summary>
+            <table style="width:100%;margin-top:8px;">
+              <thead>
+                <tr><th>Componente</th><th class="right">Qtd total</th><th class="right">Tempo total</th><th class="right">Custo total</th></tr>
+              </thead>
+              <tbody>
+                {% for c in o.components %}
+                <tr>
+                  <td>{{ c.component.code }} — {{ c.component.name }}</td>
+                  <td class="right">{{ c.required_qty }}</td>
+                  <td class="right">{{ c.time_total }}</td>
+                  <td class="right">R$ {{ c.cost_total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </details>
+        </td>
+        <td>{{ o.obj.product.code }} — {{ o.obj.product.name }}</td>
+        <td class="right">{{ o.obj.quantity }}</td>
+        <td class="right">{{ o.total_time }}</td>
+      </tr>
+      {% endfor %}
+    {% else %}
+      <tr><td colspan="3" class="muted">Nenhuma produção em andamento.</td></tr>
     {% endif %}
     </tbody>
   </table>
