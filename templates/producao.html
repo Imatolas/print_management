@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Produção{% endblock %}
+{% block extra_css %}
+<style>
+  .action-menu{position:relative;cursor:pointer;}
+  .action-menu > span{padding:4px 8px;}
+  .action-menu:hover .menu{display:block;}
+  .action-menu .menu{display:none;position:absolute;right:0;background:#fff;border:1px solid var(--line);border-radius:6px;padding:4px 0;z-index:10;}
+  .action-menu .menu a{display:block;padding:4px 12px;white-space:nowrap;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header"><div class="page-title">Produção</div></div>
+<form method="post" class="block form">
+  {% csrf_token %}
+  <div class="field"><label for="{{ form.product.id_for_label }}">Produto</label>{{ form.product }}</div>
+  <div class="field"><label for="{{ form.quantity.id_for_label }}">Quantidade</label>{{ form.quantity }}</div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Adicionar</button>
+  </div>
+</form>
+<div class="page-title" style="font-size:20px;margin-top:18px">Produções em andamento</div>
+<div class="block">
+  <table>
+    <thead><tr><th>Produto</th><th class="right">Quantidade</th><th class="right">Tempo total</th><th></th></tr></thead>
+    <tbody>
+    {% for o in orders %}
+      <tr>
+        <td colspan="4">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+            <details style="flex:1;">
+              <summary style="display:flex;justify-content:space-between;">
+                <span>{{ o.obj.product.code }} — {{ o.obj.product.name }}</span>
+                <span class="right" style="min-width:80px;text-align:right;">{{ o.obj.quantity }}</span>
+                <span class="right" style="min-width:80px;text-align:right;">{{ o.total_time }}</span>
+              </summary>
+              <table style="width:100%;margin-top:8px;">
+                <thead>
+                  <tr><th>Componente</th><th class="right">Qtd total</th><th class="right">Tempo total</th><th class="right">Custo total</th></tr>
+                </thead>
+                <tbody>
+                  {% for c in o.components %}
+                  <tr>
+                    <td>{{ c.component.code }} — {{ c.component.name }}</td>
+                    <td class="right">{{ c.required_qty }}</td>
+                    <td class="right">{{ c.time_total }}</td>
+                    <td class="right">R$ {{ c.cost_total|floatformat:2 }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </details>
+            <div class="action-menu">
+              <span>⋮</span>
+              <div class="menu">
+                <a href="{% url 'producao-edit' o.obj.pk %}">Editar</a>
+                <a href="{% url 'producao-delete' o.obj.pk %}">Excluir</a>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4" class="muted">Nenhuma produção em andamento.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
