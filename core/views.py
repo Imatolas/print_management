@@ -284,6 +284,26 @@ def producao(request):
     qs = ProductionOrder.objects.filter(status="open").select_related("product")
     for op in qs:
         total_min = op.product.bom_required_minutes(op.quantity)
+        comps = []
+        for item in op.product.bom_items.select_related("component"):
+            req_qty = item.quantity * op.quantity
+            time_total = item.component.print_time_min * req_qty
+            cost_total = float(item.component.unit_cost) * req_qty
+            comps.append(
+                {
+                    "component": item.component,
+                    "required_qty": req_qty,
+                    "time_total": minutes_to_hhmm(time_total),
+                    "cost_total": cost_total,
+                }
+            )
+        orders.append(
+            {
+                "obj": op,
+                "total_time": minutes_to_hhmm(total_min),
+                "components": comps,
+            }
+        )
         orders.append({"obj": op, "total_time": minutes_to_hhmm(total_min)})
 
     return render(request, "producao.html", {"form": form, "orders": orders})
