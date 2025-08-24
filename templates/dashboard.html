@@ -1,5 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+  .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;}
+  .modal.hidden{display:none;}
+  .modal .content{background:#fff;padding:20px;border-radius:12px;width:360px;}
+</style>
+{% endblock %}
 {% block content %}
 <div class="page-header">
   <div class="page-title">📊 Dashboard</div>
@@ -64,7 +71,10 @@
   </div>
 </div>
 
-<div class="page-title" style="font-size:20px;margin-top:18px">🖨️ Andamento das impressões</div>
+<div class="page-header" style="margin-top:18px">
+  <div class="page-title" style="font-size:20px">🖨️ Andamento das impressões</div>
+  <div class="page-actions"><button id="btn-add-printer" class="btn btn-primary">+ Adicionar impressora</button></div>
+</div>
 {% if progress_items %}
   {% for item in progress_items %}
     <div class="block">
@@ -94,4 +104,48 @@
 {% else %}
   <div class="block"><div class="muted">Nenhuma impressão em andamento.</div></div>
 {% endif %}
+<div id="modal-add-printer" class="modal hidden">
+  <div class="content">
+    <div class="card-title">Adicionar impressora</div>
+    <div class="form">
+      <div class="field">
+        <label>Produto</label>
+        <select id="add-printer-product">
+          <option value="">Selecione</option>
+          {% for p in products %}
+          <option value="{{ p.id }}">{{ p.code }} — {{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Componente</label>
+        <select id="add-printer-component"></select>
+      </div>
+      <div class="field">
+        <label>Quantidade</label>
+        <input type="number" id="add-printer-qty" value="1" min="1">
+      </div>
+      <div class="field">
+        <label>Tempo total</label>
+        <div id="add-printer-time" class="muted">—</div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn" id="add-printer-cancel">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="add-printer-calc">Calcular</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const modal=document.getElementById('modal-add-printer');
+const openBtn=document.getElementById('btn-add-printer');
+if(openBtn){openBtn.addEventListener('click',()=>modal.classList.remove('hidden'));}
+document.getElementById('add-printer-cancel').onclick=()=>modal.classList.add('hidden');
+const productSel=document.getElementById('add-printer-product');
+const compSel=document.getElementById('add-printer-component');
+productSel.onchange=function(){const pid=this.value;compSel.innerHTML='';if(!pid)return;fetch(`/api/products/${pid}/components/`).then(r=>r.json()).then(data=>{data.forEach(c=>{const opt=document.createElement('option');opt.value=c.id;opt.textContent=`${c.code} — ${c.name}`;compSel.appendChild(opt);});});};
+document.getElementById('add-printer-calc').onclick=function(){const product_id=productSel.value;const component_id=compSel.value;const quantity=document.getElementById('add-printer-qty').value;fetch('/api/print-time/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product_id,component_id,quantity})}).then(r=>r.json()).then(data=>{document.getElementById('add-printer-time').textContent=data.time_hhmm+` (${Math.round(data.time_min)} min)`;});};
+</script>
 {% endblock %}
