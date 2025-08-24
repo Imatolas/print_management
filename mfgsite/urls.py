@@ -40,4 +40,6 @@ urlpatterns = [
     path("api/printers/<int:pk>/toggle/", api.PrinterToggleAPIView.as_view(), name="api-printer-toggle"),
     path("api/schedule/", api.ScheduleAPIView.as_view(), name="api-schedule"),
     path("api/workorders/<int:pk>/tasks/preview/", api.WorkOrderTasksPreviewAPIView.as_view(), name="api-workorder-preview"),
+    path("api/products/<int:pk>/components/", api.ProductComponentsAPIView.as_view(), name="api-product-components"),
+    path("api/print-time/", api.PrintTimeAPIView.as_view(), name="api-print-time"),
 ]

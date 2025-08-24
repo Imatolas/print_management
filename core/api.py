@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.views import View
 from django.shortcuts import get_object_or_404
-from .models import Printer, WorkOrder, minutes_to_hhmm
+from .models import Printer, WorkOrder, minutes_to_hhmm, Product, Component
 from .scheduling import (
     load_printers_active,
     expand_workorder_to_tasks,
@@ -108,3 +108,38 @@ class WorkOrderTasksPreviewAPIView(APIView):
             for t in tasks
         ]
         return Response(data)
+
+
+class ProductComponentsAPIView(APIView):
+    def get(self, request, pk):
+        product = get_object_or_404(Product, pk=pk)
+        data = [
+            {
+                "id": item.component.id,
+                "code": item.component.code,
+                "name": item.component.name,
+                "print_time_min": item.component.print_time_min,
+            }
+            for item in product.bom_items.select_related("component")
+        ]
+        return Response(data)
+
+
+class PrintTimeAPIView(APIView):
+    def post(self, request):
+        data = getattr(request, "data", None)
+        if data is None:
+            try:
+                import json
+                data = json.loads(request.body.decode() or "{}")
+            except Exception:
+                data = {}
+        component_id = data.get("component_id")
+        quantity = int(data.get("quantity", 0))
+        component = get_object_or_404(Component, pk=component_id)
+        total_speed = sum(p.speed_factor for p in Printer.objects.filter(is_active=True)) or 1
+        total_minutes = (component.print_time_min * quantity) / total_speed
+        return Response({
+            "time_min": total_minutes,
+            "time_hhmm": minutes_to_hhmm(total_minutes),
+        })

@@ -124,6 +124,9 @@ def dashboard(request):
     # (Se futuramente você ligar a parte de ordens, alimente aqui)
     progress_items = []
 
+    # Produtos disponíveis para seleção no modal de impressão
+    products = list(Product.objects.all())
+
     ctx = {
         "total_componentes": total_componentes,
         "total_produtos": total_produtos,
@@ -131,6 +134,7 @@ def dashboard(request):
         "low_components": low_components,
         "low_products": low_products,
         "progress_items": progress_items,
+        "products": products,
     }
     return render(request, "dashboard.html", ctx)
 
