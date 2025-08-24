@@ -1,12 +1,36 @@
-# Byte-compiled / optimized / DLL files
+# Python/Django
 __pycache__/
-*.py[cod]
-
-# Virtual environments
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+db.sqlite3
+.env
+.venv/
 venv/
 
-# SQLite database files
-*.sqlite3
+# Build/estático
+media/
+staticfiles/
+dist/
+build/
 
-# Local settings
-*.env
+# Node
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+
+# Arquivos binários comuns (se não forem realmente versionados)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.pdf
+*.zip
+*.7z
+*.rar
+*.exe
+*.dll
