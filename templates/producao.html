@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Produção{% endblock %}
+{% block content %}
+<div class="page-header"><div class="page-title">Produção</div></div>
+<form method="post" class="block form">
+  {% csrf_token %}
+  <div class="field"><label for="{{ form.product.id_for_label }}">Produto</label>{{ form.product }}</div>
+  <div class="field"><label for="{{ form.quantity.id_for_label }}">Quantidade</label>{{ form.quantity }}</div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Adicionar</button>
+  </div>
+</form>
+<div class="page-title" style="font-size:20px;margin-top:18px">Produções em andamento</div>
+<div class="block">
+  <table>
+    <thead><tr><th>Produto</th><th class="right">Quantidade</th><th class="right">Tempo total</th></tr></thead>
+    <tbody>
+    {% if orders %}
+      {% for o in orders %}
+      <tr>
+        <td>{{ o.obj.product.code }} — {{ o.obj.product.name }}</td>
+        <td class="right">{{ o.obj.quantity }}</td>
+        <td class="right">{{ o.total_time }}</td>
+      </tr>
+      {% endfor %}
+    {% else %}
+      <tr><td colspan="3" class="muted">Nenhuma produção em andamento.</td></tr>
+    {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
