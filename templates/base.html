@@ -74,6 +74,7 @@
           <a href="{% url 'estoque-componentes' %}" id="nav-comp" {% if request.resolver_match.url_name == 'estoque-componentes' %}class="active"{% endif %}>Componentes</a>
           <a href="{% url 'estoque-produtos' %}" id="nav-prod" {% if request.resolver_match.url_name == 'estoque-produtos' %}class="active"{% endif %}>Produtos</a>
         </div>
+        <a href="{% url 'producao' %}" id="nav-producao" {% if request.resolver_match.url_name == 'producao' %}class="active"{% endif %}>Produção</a>
         <a href="{% url 'relatorios' %}" id="nav-rel" {% if request.resolver_match.url_name == 'relatorios' %}class="active"{% endif %}>Relatórios</a>
         <a href="{% url 'configuracoes' %}" id="nav-config" {% if request.resolver_match.url_name == 'configuracoes' %}class="active"{% endif %}>Configurações</a>
       </nav>

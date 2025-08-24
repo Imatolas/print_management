@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
-from .models import Component, Product, BOMItem
+from .models import Component, Product, BOMItem, ProductionOrder
+
 
 class SmokeTests(TestCase):
     def test_homepage(self):
@@ -83,3 +84,29 @@ class ProductBOMTests(TestCase):
         prod.refresh_from_db()
         self.assertEqual(prod.bom_items.count(), 1)
         self.assertEqual(prod.total_cost, 30)
+
+
+class ProductionOrderTests(TestCase):
+    def setUp(self):
+        self.product = Product.objects.create(code="P1", name="Prod")
+
+    def test_edit_production_order(self):
+        order = ProductionOrder.objects.create(product=self.product, quantity=5)
+        url = reverse("producao-edit", args=[order.pk])
+        data = {
+            "product": self.product.pk,
+            "quantity": 10,
+            "due_date": "",
+            "notes": "",
+        }
+        response = self.client.post(url, data)
+        self.assertRedirects(response, reverse("producao"))
+        order.refresh_from_db()
+        self.assertEqual(order.quantity, 10)
+
+    def test_delete_production_order(self):
+        order = ProductionOrder.objects.create(product=self.product, quantity=5)
+        url = reverse("producao-delete", args=[order.pk])
+        response = self.client.post(url)
+        self.assertRedirects(response, reverse("producao"))
+        self.assertFalse(ProductionOrder.objects.filter(pk=order.pk).exists())
