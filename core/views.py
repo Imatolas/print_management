@@ -3,8 +3,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib import messages
 
-from .models import Component, Product, BOMItem
-from .forms import ComponentForm, ProductForm, BOMFormSet
+from .models import Component, Product, BOMItem, ProductionOrder, minutes_to_hhmm
+from .forms import ComponentForm, ProductForm, BOMFormSet, ProductionOrderForm
 
 # ----------------------
 # Helpers tolerantes a diferenças nos modelos
@@ -268,6 +268,25 @@ def produtos_delete(request, pk):
         messages.success(request, f"Produto “{name}” excluído.")
         return redirect("estoque-produtos")
     return render(request, "confirm_delete.html", {"title": "Excluir produto", "object": obj})
+
+
+# ----------------------
+# PRODUÇÃO
+# ----------------------
+def producao(request):
+    form = ProductionOrderForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Ordem de produção criada.")
+        return redirect("producao")
+
+    orders = []
+    qs = ProductionOrder.objects.filter(status="open").select_related("product")
+    for op in qs:
+        total_min = op.product.bom_required_minutes(op.quantity)
+        orders.append({"obj": op, "total_time": minutes_to_hhmm(total_min)})
+
+    return render(request, "producao.html", {"form": form, "orders": orders})
 
 
 # A view específica para editar apenas componentes do produto não é mais necessária,
