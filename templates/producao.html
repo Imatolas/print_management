@@ -24,6 +24,19 @@
 <div class="page-title" style="font-size:20px;margin-top:18px">Produções em andamento</div>
 <div class="block">
   <table>
+
+    <thead>
+      <tr>
+        <th>Produto</th>
+        <th class="right">Quantidade</th>
+        <th class="right">Tempo total</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for o in orders %}
+      <tr>
+
     <thead><tr><th>Produto</th><th class="right">Quantidade</th><th class="right">Tempo total</th><th></th></tr></thead>
     <tbody>
     {% for o in orders %}
@@ -38,6 +51,7 @@
       {% for o in orders %}
       <tr>
 
+
         <td colspan="4">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
             <details style="flex:1;">
@@ -48,7 +62,16 @@
               </summary>
               <table style="width:100%;margin-top:8px;">
                 <thead>
+
+                  <tr>
+                    <th>Componente</th>
+                    <th class="right">Qtd total</th>
+                    <th class="right">Tempo total</th>
+                    <th class="right">Custo total</th>
+                  </tr>
+
                   <tr><th>Componente</th><th class="right">Qtd total</th><th class="right">Tempo total</th><th class="right">Custo total</th></tr>
+
                 </thead>
                 <tbody>
                   {% for c in o.components %}
@@ -72,6 +95,11 @@
           </div>
         </td>
       </tr>
+
+    {% empty %}
+      <tr><td colspan="4" class="muted">Nenhuma produção em andamento.</td></tr>
+    {% endfor %}
+
 
     {% empty %}
       <tr><td colspan="4" class="muted">Nenhuma produção em andamento.</td></tr>

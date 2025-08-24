@@ -90,6 +90,11 @@ class ProductionOrderTests(TestCase):
     def setUp(self):
         self.product = Product.objects.create(code="P1", name="Prod")
 
+    def test_production_list_page(self):
+        response = self.client.get(reverse("producao"))
+        self.assertEqual(response.status_code, 200)
+
+
     def test_edit_production_order(self):
         order = ProductionOrder.objects.create(product=self.product, quantity=5)
         url = reverse("producao-edit", args=[order.pk])
