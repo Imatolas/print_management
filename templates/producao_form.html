@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{% if obj %}Editar{% else %}Nova{% endif %} Produção{% endblock %}
+{% block content %}
+<div class="page-header"><div class="page-title">{% if obj %}Editar{% else %}Nova{% endif %} produção</div></div>
+<form method="post" class="block form">
+  {% csrf_token %}
+  <div class="field"><label for="{{ form.product.id_for_label }}">Produto</label>{{ form.product }}</div>
+  <div class="field"><label for="{{ form.quantity.id_for_label }}">Quantidade</label>{{ form.quantity }}</div>
+  <div class="field"><label for="{{ form.due_date.id_for_label }}">Data</label>{{ form.due_date }}</div>
+  <div class="field"><label for="{{ form.notes.id_for_label }}">Observações</label>{{ form.notes }}</div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Salvar</button>
+    <a class="btn" href="{% url 'producao' %}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}
