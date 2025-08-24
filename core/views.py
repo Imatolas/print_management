@@ -309,6 +309,31 @@ def producao(request):
     return render(request, "producao.html", {"form": form, "orders": orders})
 
 
+def producao_edit(request, pk):
+    obj = get_object_or_404(ProductionOrder, pk=pk)
+    form = ProductionOrderForm(request.POST or None, instance=obj)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Ordem de produção atualizada.")
+        return redirect("producao")
+    return render(request, "producao_form.html", {"form": form, "obj": obj})
+
+
+def producao_delete(request, pk):
+    obj = get_object_or_404(ProductionOrder, pk=pk)
+    if request.method == "POST":
+        obj.delete()
+        messages.success(request, "Ordem de produção excluída.")
+        return redirect("producao")
+    return render(
+        request,
+        "confirm_delete.html",
+        {"title": "Excluir produção", "object": obj},
+    )
+
+
+
+
 # A view específica para editar apenas componentes do produto não é mais necessária,
 # pois `produtos_edit` já lida com o formulário principal e o BOM.
 
