@@ -42,6 +42,9 @@
             </table>
           </details>
         </td>
+        <td>{{ o.obj.product.code }} — {{ o.obj.product.name }}</td>
+        <td class="right">{{ o.obj.quantity }}</td>
+        <td class="right">{{ o.total_time }}</td>
       </tr>
       {% endfor %}
     {% else %}
