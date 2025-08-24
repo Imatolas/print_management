@@ -21,6 +21,12 @@ class Component(models.Model):
     # tempo de impressão por unidade (em MINUTOS) — cadastra em minutos
     print_time_min = models.PositiveIntegerField("Tempo de impressão (min/un)", default=0)
 
+    # novos campos para escalonamento de impressão 3D
+    base_time_min = models.PositiveIntegerField("Tempo base (min)", default=0)
+    per_plate_time_min = models.PositiveIntegerField("Tempo por prato (min)", default=0)
+    batch_size = models.PositiveIntegerField("Qtd por prato", default=1)
+    tags_required = models.CharField("Tags requeridas", max_length=120, blank=True)
+
     qty_on_hand = models.PositiveIntegerField("Qtd em estoque", default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -155,3 +161,31 @@ class ProductionLog(models.Model):
     @property
     def spent_hhmm(self) -> str:
         return minutes_to_hhmm(self.spent_minutes)
+
+
+# ======== Impressoras e Ordens de Trabalho ========
+class Printer(models.Model):
+    name = models.CharField(max_length=120)
+    is_active = models.BooleanField(default=True)
+    speed_factor = models.FloatField(default=1.0, validators=[MinValueValidator(0.01)])
+    tags = models.CharField(max_length=120, blank=True)
+    volume_x = models.PositiveIntegerField(null=True, blank=True)
+    volume_y = models.PositiveIntegerField(null=True, blank=True)
+    volume_z = models.PositiveIntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class WorkOrder(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    due_date = models.DateField(null=True, blank=True)
+    priority = models.PositiveIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-priority", "due_date"]
+
+    def __str__(self):
+        return f"WO #{self.id} - {self.product.code} x{self.quantity}"

@@ -17,6 +17,14 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
 ]
 
+# inclui DRF se disponível
+try:
+    import rest_framework  # type: ignore  # noqa: F401
+except Exception:
+    pass
+else:
+    INSTALLED_APPS.append('rest_framework')
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

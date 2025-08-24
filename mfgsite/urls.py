@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from core import views as v
+from core import api
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -30,4 +31,13 @@ urlpatterns = [
     # Relatórios e Configurações
     path("relatorios/", v.relatorios, name="relatorios"),
     path("configuracoes/", v.configuracoes, name="configuracoes"),
+
+    # Planejamento de impressão
+    path("plan/schedule/", v.plan_schedule, name="plan-schedule"),
+
+    # API
+    path("api/printers/", api.PrinterListAPIView.as_view(), name="api-printers"),
+    path("api/printers/<int:pk>/toggle/", api.PrinterToggleAPIView.as_view(), name="api-printer-toggle"),
+    path("api/schedule/", api.ScheduleAPIView.as_view(), name="api-schedule"),
+    path("api/workorders/<int:pk>/tasks/preview/", api.WorkOrderTasksPreviewAPIView.as_view(), name="api-workorder-preview"),
 ]
