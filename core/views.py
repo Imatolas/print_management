@@ -350,3 +350,10 @@ def configuracoes(request):
         "stub.html",
         {"title": "Configurações", "text": "Página de configurações em construção."},
     )
+
+
+def plan_schedule(request):
+    from .models import WorkOrder
+
+    workorders = WorkOrder.objects.all()
+    return render(request, "plan/schedule.html", {"workorders": workorders})

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Planejar impressão</h1>
+<div>
+  <label>WorkOrder:</label>
+  <select id="wo-select">
+    {% for wo in workorders %}
+    <option value="{{ wo.id }}">WO {{ wo.id }} - {{ wo.product.name }} x{{ wo.quantity }}</option>
+    {% endfor %}
+  </select>
+  <button id="btn-simular">Simular Escalonamento</button>
+</div>
+<div id="printers"></div>
+<h3>Makespan: <span id="makespan"></span></h3>
+<div id="gantt"></div>
+<h3>Não atribuídas</h3>
+<ul id="unassigned"></ul>
+
+<style>
+#gantt .line{display:flex;margin-bottom:10px;align-items:center;}
+#gantt .label{width:120px;}
+#gantt .tasks{display:flex;flex-grow:1;height:30px;}
+#gantt .task{background:#6cf;margin-right:2px;text-align:center;font-size:12px;}
+</style>
+<script>
+function loadPrinters(){
+  fetch('/api/printers/').then(r=>r.json()).then(data=>{
+    const div = document.getElementById('printers');
+    div.innerHTML='';
+    data.forEach(p=>{
+      const btn=document.createElement('button');
+      btn.textContent=(p.is_active?'Desativar ':'Ativar ')+p.name;
+      btn.onclick=()=>{fetch(`/api/printers/${p.id}/toggle/`,{method:'PATCH'}).then(()=>{loadPrinters();});};
+      div.appendChild(btn);
+    });
+  });
+}
+loadPrinters();
+
+document.getElementById('btn-simular').onclick=function(){
+  const wo=document.getElementById('wo-select').value;
+  fetch('/api/schedule/',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({workorder_id:wo})
+  }).then(r=>r.json()).then(renderSchedule);
+};
+
+function renderSchedule(data){
+  document.getElementById('makespan').textContent=data.makespan_hhmm+` (${Math.round(data.makespan_min)} min)`;
+  // gantt
+  const gantt=document.getElementById('gantt');
+  gantt.innerHTML='';
+  const max=data.makespan_min || 1;
+  const printers={};
+  data.assignments.forEach(a=>{
+    if(!printers[a.printer_name]) printers[a.printer_name]=[];
+    printers[a.printer_name].push(a);
+  });
+  Object.keys(printers).forEach(name=>{
+    const line=document.createElement('div');line.className='line';
+    const label=document.createElement('div');label.className='label';label.textContent=name;line.appendChild(label);
+    const tasksDiv=document.createElement('div');tasksDiv.className='tasks';
+    printers[name].forEach(t=>{
+      const d=document.createElement('div');d.className='task';
+      d.style.width=(t.duration/max*100)+"%";d.textContent=t.component_name;tasksDiv.appendChild(d);
+    });
+    line.appendChild(tasksDiv);gantt.appendChild(line);
+  });
+  const ul=document.getElementById('unassigned');
+  ul.innerHTML='';
+  data.unassigned.forEach(u=>{
+    const li=document.createElement('li');
+    li.textContent=`${u.component_name} (${u.quantity})`;
+    ul.appendChild(li);
+  });
+}
+</script>
+{% endblock %}

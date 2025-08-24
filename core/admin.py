@@ -1,5 +1,13 @@
 from django.contrib import admin
-from .models import Component, Product, BOMItem, ProductionOrder, ProductionLog
+from .models import (
+    Component,
+    Product,
+    BOMItem,
+    ProductionOrder,
+    ProductionLog,
+    Printer,
+    WorkOrder,
+)
 
 @admin.register(Component)
 class ComponentAdmin(admin.ModelAdmin):
@@ -25,3 +33,13 @@ class ProductionOrderAdmin(admin.ModelAdmin):
 class ProductionLogAdmin(admin.ModelAdmin):
     list_display = ('id','order','component','quantity','created_at')
     list_filter = ('component',)
+
+
+@admin.register(Printer)
+class PrinterAdmin(admin.ModelAdmin):
+    list_display = ("name", "is_active", "speed_factor", "tags")
+
+
+@admin.register(WorkOrder)
+class WorkOrderAdmin(admin.ModelAdmin):
+    list_display = ("id", "product", "quantity", "due_date", "priority")
