@@ -153,6 +153,9 @@ const addBtn=document.getElementById('add-printer-add');
 const printArea=document.getElementById('print-area');
 function getCSRFToken(){return document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith('csrftoken='))?.split('=')[1];}
 function updatePrintTime(){const component_id=compSel.value;const quantity=qtyInput.value;if(!component_id||!quantity){timeEl.textContent='—';return;}fetch('/api/print-time/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':getCSRFToken()},body:JSON.stringify({component_id,quantity})}).then(r=>r.ok?r.json():Promise.reject()).then(data=>{timeEl.textContent=`${data.time_hhmm} (${Math.round(data.time_min)} min)`;}).catch(()=>{timeEl.textContent='—';});}
+
+function updatePrintTime(){const component_id=compSel.value;const quantity=qtyInput.value;if(!component_id||!quantity){timeEl.textContent='—';return;}fetch('/api/print-time/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({component_id,quantity})}).then(r=>r.json()).then(data=>{timeEl.textContent=data.time_hhmm+` (${Math.round(data.time_min)} min)`;});}
+
 productSel.onchange=function(){const pid=this.value;compSel.innerHTML='';if(!pid){timeEl.textContent='—';return;}fetch(`/api/products/${pid}/components/`).then(r=>r.json()).then(data=>{data.forEach(c=>{const opt=document.createElement('option');opt.value=c.id;opt.textContent=`${c.code} — ${c.name}`;compSel.appendChild(opt);});updatePrintTime();});};
 compSel.onchange=updatePrintTime;
 qtyInput.oninput=updatePrintTime;
