@@ -75,6 +75,7 @@
   <div class="page-title" style="font-size:20px">🖨️ Andamento das impressões</div>
   <div class="page-actions"><button id="btn-add-printer" class="btn btn-primary">+ Adicionar impressora</button></div>
 </div>
+<div id="print-area">
 {% if progress_items %}
   {% for item in progress_items %}
     <div class="block">
@@ -102,8 +103,9 @@
     </div>
   {% endfor %}
 {% else %}
-  <div class="block"><div class="muted">Nenhuma impressão em andamento.</div></div>
+  <div id="no-printing-msg" class="block"><div class="muted">Nenhuma impressão em andamento.</div></div>
 {% endif %}
+</div>
 <div id="modal-add-printer" class="modal hidden">
   <div class="content">
     <div class="card-title">Adicionar impressora</div>
@@ -147,9 +149,30 @@ const productSel=document.getElementById('add-printer-product');
 const compSel=document.getElementById('add-printer-component');
 const qtyInput=document.getElementById('add-printer-qty');
 const timeEl=document.getElementById('add-printer-time');
+const addBtn=document.getElementById('add-printer-add');
+const printArea=document.getElementById('print-area');
 function updatePrintTime(){const component_id=compSel.value;const quantity=qtyInput.value;if(!component_id||!quantity){timeEl.textContent='—';return;}fetch('/api/print-time/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({component_id,quantity})}).then(r=>r.json()).then(data=>{timeEl.textContent=data.time_hhmm+` (${Math.round(data.time_min)} min)`;});}
 productSel.onchange=function(){const pid=this.value;compSel.innerHTML='';if(!pid){timeEl.textContent='—';return;}fetch(`/api/products/${pid}/components/`).then(r=>r.json()).then(data=>{data.forEach(c=>{const opt=document.createElement('option');opt.value=c.id;opt.textContent=`${c.code} — ${c.name}`;compSel.appendChild(opt);});updatePrintTime();});};
 compSel.onchange=updatePrintTime;
 qtyInput.oninput=updatePrintTime;
+addBtn.onclick=function(){
+  const componentText=compSel.options[compSel.selectedIndex]?.textContent;
+  const quantity=qtyInput.value;
+  const time=timeEl.textContent;
+  if(!componentText||!quantity||time==='—')return;
+  const noMsg=document.getElementById('no-printing-msg');
+  if(noMsg)noMsg.remove();
+  const block=document.createElement('div');
+  block.className='block';
+  block.innerHTML=`<div class="card-title">${componentText}</div>`+
+    `<div class="muted">Quantidade: ${quantity}</div>`+
+    `<div class="muted">Tempo total: ${time}</div>`;
+  printArea.appendChild(block);
+  modal.classList.add('hidden');
+  productSel.value='';
+  compSel.innerHTML='';
+  qtyInput.value=1;
+  timeEl.textContent='—';
+};
 </script>
 {% endblock %}
