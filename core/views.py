@@ -333,7 +333,6 @@ def producao_delete(request, pk):
 
 
 
-
 # A view específica para editar apenas componentes do produto não é mais necessária,
 # pois `produtos_edit` já lida com o formulário principal e o BOM.
 

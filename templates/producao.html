@@ -11,7 +11,6 @@
 </style>
 {% endblock %}
 
-
 {% block content %}
 <div class="page-header"><div class="page-title">Produção</div></div>
 <form method="post" class="block form">
@@ -25,6 +24,10 @@
 <div class="page-title" style="font-size:20px;margin-top:18px">Produções em andamento</div>
 <div class="block">
   <table>
+    <thead><tr><th>Produto</th><th class="right">Quantidade</th><th class="right">Tempo total</th><th></th></tr></thead>
+    <tbody>
+    {% for o in orders %}
+      <tr>
 
     <thead><tr><th>Produto</th><th class="right">Quantidade</th><th class="right">Tempo total</th><th></th></tr></thead>
 
@@ -69,6 +72,11 @@
           </div>
         </td>
       </tr>
+
+    {% empty %}
+      <tr><td colspan="4" class="muted">Nenhuma produção em andamento.</td></tr>
+    {% endfor %}
+
       {% endfor %}
     {% else %}
       <tr><td colspan="4" class="muted">Nenhuma produção em andamento.</td></tr>
