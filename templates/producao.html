@@ -18,6 +18,30 @@
     {% if orders %}
       {% for o in orders %}
       <tr>
+        <td colspan="3">
+          <details>
+            <summary style="display:flex;justify-content:space-between;">
+              <span>{{ o.obj.product.code }} — {{ o.obj.product.name }}</span>
+              <span class="right" style="min-width:80px;text-align:right;">{{ o.obj.quantity }}</span>
+              <span class="right" style="min-width:80px;text-align:right;">{{ o.total_time }}</span>
+            </summary>
+            <table style="width:100%;margin-top:8px;">
+              <thead>
+                <tr><th>Componente</th><th class="right">Qtd total</th><th class="right">Tempo total</th><th class="right">Custo total</th></tr>
+              </thead>
+              <tbody>
+                {% for c in o.components %}
+                <tr>
+                  <td>{{ c.component.code }} — {{ c.component.name }}</td>
+                  <td class="right">{{ c.required_qty }}</td>
+                  <td class="right">{{ c.time_total }}</td>
+                  <td class="right">R$ {{ c.cost_total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </details>
+        </td>
         <td>{{ o.obj.product.code }} — {{ o.obj.product.name }}</td>
         <td class="right">{{ o.obj.quantity }}</td>
         <td class="right">{{ o.total_time }}</td>
