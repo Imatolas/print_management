@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils import timezone
-from django.core.validators import MinValueValidator
 from datetime import timedelta
 
 # ======== Helpers ========
@@ -73,7 +72,7 @@ class Product(models.Model):
 class BOMItem(models.Model):
     product = models.ForeignKey(Product, related_name="bom_items", on_delete=models.CASCADE)
     component = models.ForeignKey(Component, related_name="bom_items", on_delete=models.PROTECT)
-    quantity = models.PositiveIntegerField("Qtd por produto", default=1, validators=[MinValueValidator(1)])
+    quantity = models.PositiveIntegerField("Qtd por produto", default=1)
 
     class Meta:
         unique_together = ("product", "component")
@@ -93,7 +92,7 @@ class ProductionOrder(models.Model):
         ("cancelled", "Cancelada"),
     ]
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="orders")
-    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    quantity = models.PositiveIntegerField(default=1)
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default="open")
     created_at = models.DateTimeField(auto_now_add=True)
     due_date = models.DateField(null=True, blank=True)
@@ -144,7 +143,7 @@ class ProductionOrder(models.Model):
 class ProductionLog(models.Model):
     order = models.ForeignKey(ProductionOrder, related_name="logs", on_delete=models.CASCADE)
     component = models.ForeignKey(Component, on_delete=models.PROTECT)
-    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    quantity = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(default=timezone.now)
 
     # tempo total gasto nesta impressão (em minutos) — calculado a partir do componente

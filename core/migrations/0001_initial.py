@@ -1,6 +1,6 @@
 from django.db import migrations, models
 import django.db.models.deletion
-from django.core.validators import MinValueValidator
+import django.utils.timezone
 
 class Migration(migrations.Migration):
 
@@ -38,12 +38,35 @@ class Migration(migrations.Migration):
             options={'ordering': ['code']},
         ),
         migrations.CreateModel(
+            name='ProductionOrder',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('quantity', models.PositiveIntegerField(default=1)),
+                ('status', models.CharField(choices=[('open','Aberta'),('done','Finalizada'),('cancelled','Cancelada')], default='open', max_length=12)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('due_date', models.DateField(blank=True, null=True)),
+                ('notes', models.TextField(blank=True)),
+                ('product', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='orders', to='core.product')),
+            ],
+            options={'ordering': ['-created_at']},
+        ),
+        migrations.CreateModel(
             name='BOMItem',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)], verbose_name='Qtd por produto')),
+                ('quantity', models.PositiveIntegerField(default=1, verbose_name='Qtd por produto')),
                 ('component', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='bom_items', to='core.component')),
                 ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='bom_items', to='core.product')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ProductionLog',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('quantity', models.PositiveIntegerField(default=1)),
+                ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
+                ('component', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='core.component')),
+                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='logs', to='core.productionorder')),
             ],
         ),
         migrations.AlterUniqueTogether(
