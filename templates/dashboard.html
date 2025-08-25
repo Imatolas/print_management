@@ -5,6 +5,9 @@
   .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;}
   .modal.hidden{display:none;}
   .modal .content{background:#fff;padding:20px;border-radius:12px;width:360px;}
+  #print-area{display:flex;gap:12px;flex-wrap:wrap;}
+  #print-area>.block{flex:1 1 100%;}
+  #print-area .printer-card{flex:0 0 240px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;}
 </style>
 {% endblock %}
 {% block content %}
@@ -166,12 +169,12 @@ addBtn.onclick=function(){
   if(!componentText||!quantity||time==='—')return;
   const noMsg=document.getElementById('no-printing-msg');
   if(noMsg)noMsg.remove();
-  const block=document.createElement('div');
-  block.className='block';
-  block.innerHTML=`<div class="card-title">${componentText}</div>`+
+  const card=document.createElement('div');
+  card.className='printer-card';
+  card.innerHTML=`<div class="card-title">${componentText}</div>`+
     `<div class="muted">Quantidade: ${quantity}</div>`+
     `<div class="muted">Tempo total: ${time}</div>`;
-  printArea.appendChild(block);
+  printArea.appendChild(card);
   modal.classList.add('hidden');
   productSel.value='';
   compSel.innerHTML='';
