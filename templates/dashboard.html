@@ -5,6 +5,9 @@
   .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;}
   .modal.hidden{display:none;}
   .modal .content{background:#fff;padding:20px;border-radius:12px;width:360px;}
+  #print-area{display:flex;gap:12px;flex-wrap:wrap;}
+  #print-area>.block{flex:1 1 100%;}
+  #print-area .printer-card{flex:0 0 240px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;}
 </style>
 {% endblock %}
 {% block content %}
@@ -110,6 +113,7 @@
   <div class="content">
     <div class="card-title">Adicionar impressora</div>
     <div class="form">
+      {% csrf_token %}
       <div class="field">
         <label>Produto</label>
         <select id="add-printer-product">
@@ -151,10 +155,8 @@ const qtyInput=document.getElementById('add-printer-qty');
 const timeEl=document.getElementById('add-printer-time');
 const addBtn=document.getElementById('add-printer-add');
 const printArea=document.getElementById('print-area');
-function getCSRFToken(){return document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith('csrftoken='))?.split('=')[1];}
-function updatePrintTime(){const component_id=compSel.value;const quantity=qtyInput.value;if(!component_id||!quantity){timeEl.textContent='—';return;}fetch('/api/print-time/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':getCSRFToken()},body:JSON.stringify({component_id,quantity})}).then(r=>r.ok?r.json():Promise.reject()).then(data=>{timeEl.textContent=`${data.time_hhmm} (${Math.round(data.time_min)} min)`;}).catch(()=>{timeEl.textContent='—';});}
-
-function updatePrintTime(){const component_id=compSel.value;const quantity=qtyInput.value;if(!component_id||!quantity){timeEl.textContent='—';return;}fetch('/api/print-time/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({component_id,quantity})}).then(r=>r.json()).then(data=>{timeEl.textContent=data.time_hhmm+` (${Math.round(data.time_min)} min)`;});}
+const csrfToken=document.querySelector('[name=csrfmiddlewaretoken]').value;
+function updatePrintTime(){const component_id=compSel.value;const quantity=qtyInput.value;if(!component_id||!quantity){timeEl.textContent='—';return;}fetch('/api/print-time/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify({component_id,quantity})}).then(r=>r.ok?r.json():Promise.reject()).then(data=>{timeEl.textContent=`${data.time_hhmm} (${Math.round(data.time_min)} min)`;}).catch(()=>{timeEl.textContent='—';});}
 
 productSel.onchange=function(){const pid=this.value;compSel.innerHTML='';if(!pid){timeEl.textContent='—';return;}fetch(`/api/products/${pid}/components/`).then(r=>r.json()).then(data=>{data.forEach(c=>{const opt=document.createElement('option');opt.value=c.id;opt.textContent=`${c.code} — ${c.name}`;compSel.appendChild(opt);});updatePrintTime();});};
 compSel.onchange=updatePrintTime;
@@ -166,12 +168,12 @@ addBtn.onclick=function(){
   if(!componentText||!quantity||time==='—')return;
   const noMsg=document.getElementById('no-printing-msg');
   if(noMsg)noMsg.remove();
-  const block=document.createElement('div');
-  block.className='block';
-  block.innerHTML=`<div class="card-title">${componentText}</div>`+
+  const card=document.createElement('div');
+  card.className='printer-card';
+  card.innerHTML=`<div class="card-title">${componentText}</div>`+
     `<div class="muted">Quantidade: ${quantity}</div>`+
     `<div class="muted">Tempo total: ${time}</div>`;
-  printArea.appendChild(block);
+  printArea.appendChild(card);
   modal.classList.add('hidden');
   productSel.value='';
   compSel.innerHTML='';
