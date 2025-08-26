@@ -136,6 +136,21 @@ class ProductionOrder(models.Model):
         rem = max(0, req - printed)
         return rem * component.print_time_min
 
+    def time_remaining_minutes(self) -> int:
+        """Tempo restante agregado (minutos) para concluir a ordem."""
+        items = list(self.product.bom_items.select_related("component"))
+        if not items:
+            return 0
+        times = [
+            self.time_remaining_minutes_for_component(item.component)
+            for item in items
+        ]
+        return max(times) if times else 0
+
+    @property
+    def time_remaining_hhmm(self) -> str:
+        return minutes_to_hhmm(self.time_remaining_minutes())
+
     @property
     def progress_percent(self) -> float:
         # média ponderada por quantidade requerida de cada componente
