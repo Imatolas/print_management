@@ -6,6 +6,7 @@ from .models import (
     ProductionOrder,
     ProductionLog,
     Printer,
+    PrintTask,
     WorkOrder,
 )
 
@@ -38,6 +39,12 @@ class ProductionLogAdmin(admin.ModelAdmin):
 @admin.register(Printer)
 class PrinterAdmin(admin.ModelAdmin):
     list_display = ("name", "is_active", "speed_factor", "tags")
+
+
+@admin.register(PrintTask)
+class PrintTaskAdmin(admin.ModelAdmin):
+    list_display = ("order", "component", "printer", "quantity", "status")
+    list_filter = ("component", "printer", "status")
 
 
 @admin.register(WorkOrder)
