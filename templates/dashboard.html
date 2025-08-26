@@ -130,10 +130,11 @@
       <div class="field">
         <label>Quantidade</label>
         <input type="number" id="add-printer-qty" value="1" min="1">
+        <div id="add-printer-error" class="error hidden"></div>
       </div>
       <div class="field">
-        <label>Tempo total</label>
-        <div id="add-printer-time" class="muted">—</div>
+        <label>Resumo</label>
+        <div id="add-printer-summary" class="muted">—</div>
       </div>
       <div class="form-actions">
         <button type="button" class="btn" id="add-printer-cancel">Cancelar</button>
@@ -152,33 +153,35 @@ document.getElementById('add-printer-cancel').onclick=()=>modal.classList.add('h
 const productSel=document.getElementById('add-printer-product');
 const compSel=document.getElementById('add-printer-component');
 const qtyInput=document.getElementById('add-printer-qty');
-const timeEl=document.getElementById('add-printer-time');
+const summaryEl=document.getElementById('add-printer-summary');
+const errorEl=document.getElementById('add-printer-error');
 const addBtn=document.getElementById('add-printer-add');
 const printArea=document.getElementById('print-area');
 const csrfToken=document.querySelector('[name=csrfmiddlewaretoken]').value;
-function updatePrintTime(){const component_id=compSel.value;const quantity=qtyInput.value;if(!component_id||!quantity){timeEl.textContent='—';return;}fetch('/api/print-time/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify({component_id,quantity})}).then(r=>r.ok?r.json():Promise.reject()).then(data=>{timeEl.textContent=`${data.time_hhmm} (${Math.round(data.time_min)} min)`;}).catch(()=>{timeEl.textContent='—';});}
+function minutesToHHMM(min){const h=Math.floor(min/60);const m=Math.round(min%60);return `${h}h${String(m).padStart(2,'0')}m`;}
+function updateSummary(){const opt=compSel.options[compSel.selectedIndex];const quantity=parseInt(qtyInput.value,10);summaryEl.textContent='—';errorEl.classList.add('hidden');addBtn.disabled=true;if(!opt||!quantity){return;}const required=parseInt(opt.dataset.required,10)||0;const printTime=parseFloat(opt.dataset.printTime)||0;if(quantity>required){errorEl.textContent='Quantidade excede o total necessário';errorEl.classList.remove('hidden');return;}fetch('/api/print-time/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify({component_id:opt.value,quantity})}).then(r=>r.ok?r.json():Promise.reject()).then(data=>{const remainingQty=required-quantity;const remainingMin=remainingQty*printTime;summaryEl.textContent=`Quantidade: ${quantity}; Tempo necessário: ${data.time_hhmm}; Tempo restante: ${minutesToHHMM(remainingMin)}`;addBtn.disabled=false;}).catch(()=>{summaryEl.textContent='—';});}
 
-productSel.onchange=function(){const pid=this.value;compSel.innerHTML='';if(!pid){timeEl.textContent='—';return;}fetch(`/api/products/${pid}/components/`).then(r=>r.json()).then(data=>{data.forEach(c=>{const opt=document.createElement('option');opt.value=c.id;opt.textContent=`${c.code} — ${c.name}`;compSel.appendChild(opt);});updatePrintTime();});};
-compSel.onchange=updatePrintTime;
-qtyInput.oninput=updatePrintTime;
+productSel.onchange=function(){const pid=this.value;compSel.innerHTML='';summaryEl.textContent='—';errorEl.classList.add('hidden');if(!pid){return;}fetch(`/api/products/${pid}/components/`).then(r=>r.json()).then(data=>{data.forEach(c=>{const opt=document.createElement('option');opt.value=c.id;opt.textContent=`${c.code} — ${c.name}`;opt.dataset.required=c.total_required;opt.dataset.printTime=c.print_time_min;compSel.appendChild(opt);});updateSummary();});};
+compSel.onchange=updateSummary;
+qtyInput.oninput=updateSummary;
 addBtn.onclick=function(){
   const componentText=compSel.options[compSel.selectedIndex]?.textContent;
   const quantity=qtyInput.value;
-  const time=timeEl.textContent;
-  if(!componentText||!quantity||time==='—')return;
+  const summary=summaryEl.textContent;
+  if(!componentText||!quantity||summary==='—')return;
   const noMsg=document.getElementById('no-printing-msg');
   if(noMsg)noMsg.remove();
   const card=document.createElement('div');
   card.className='printer-card';
   card.innerHTML=`<div class="card-title">${componentText}</div>`+
-    `<div class="muted">Quantidade: ${quantity}</div>`+
-    `<div class="muted">Tempo total: ${time}</div>`;
+    `<div class="muted">${summary.replace(/; /g,'<br>')}</div>`;
   printArea.appendChild(card);
   modal.classList.add('hidden');
   productSel.value='';
   compSel.innerHTML='';
   qtyInput.value=1;
-  timeEl.textContent='—';
+  summaryEl.textContent='—';
+  errorEl.classList.add('hidden');
 };
 </script>
 {% endblock %}
