@@ -42,4 +42,5 @@ urlpatterns = [
     path("api/workorders/<int:pk>/tasks/preview/", api.WorkOrderTasksPreviewAPIView.as_view(), name="api-workorder-preview"),
     path("api/products/<int:pk>/components/", api.ProductComponentsAPIView.as_view(), name="api-product-components"),
     path("api/print-time/", api.PrintTimeAPIView.as_view(), name="api-print-time"),
+    path("api/logs/", api.ProductionLogCreateAPIView.as_view(), name="api-log-create"),
 ]

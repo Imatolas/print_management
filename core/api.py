@@ -1,7 +1,15 @@
 from django.http import JsonResponse
 from django.views import View
 from django.shortcuts import get_object_or_404
-from .models import Printer, WorkOrder, minutes_to_hhmm, Product, Component
+from .models import (
+    Printer,
+    WorkOrder,
+    ProductionOrder,
+    ProductionLog,
+    minutes_to_hhmm,
+    Product,
+    Component,
+)
 from .scheduling import (
     load_printers_active,
     expand_workorder_to_tasks,
@@ -143,3 +151,23 @@ class PrintTimeAPIView(APIView):
             "time_min": total_minutes,
             "time_hhmm": minutes_to_hhmm(total_minutes),
         })
+
+
+class ProductionLogCreateAPIView(APIView):
+    def post(self, request):
+        data = getattr(request, "data", None)
+        if data is None:
+            try:
+                import json
+                data = json.loads(request.body.decode() or "{}")
+            except Exception:
+                data = {}
+        order_id = data.get("order_id")
+        component_id = data.get("component_id")
+        quantity = int(data.get("quantity", 0))
+        order = get_object_or_404(ProductionOrder, pk=order_id, status="open")
+        component = get_object_or_404(Component, pk=component_id)
+        log = ProductionLog.objects.create(
+            order=order, component=component, quantity=quantity
+        )
+        return Response({"id": log.id, "quantity": log.quantity})
