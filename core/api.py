@@ -119,6 +119,7 @@ class ProductComponentsAPIView(APIView):
                 "code": item.component.code,
                 "name": item.component.name,
                 "print_time_min": item.component.print_time_min,
+                "total_required": item.quantity,
             }
             for item in product.bom_items.select_related("component")
         ]
