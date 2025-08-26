@@ -121,8 +121,42 @@ def dashboard(request):
         if _qty_on_hand_for(p) <= 3:
             low_products.append(p)
 
-    # (Se futuramente você ligar a parte de ordens, alimente aqui)
+    # Progresso de impressão das ordens em andamento
     progress_items = []
+    for op in ProductionOrder.objects.filter(status="open").select_related("product"):
+        rows = []
+        total_required = 0
+        total_printed = 0
+        total_remaining_min = 0
+        for item in op.product.bom_items.select_related("component"):
+            comp = item.component
+            req = op.required_for_component(comp)
+            printed = op.printed_for_component(comp)
+            progress = op.progress_for_component(comp)
+            rem_min = op.time_remaining_minutes_for_component(comp)
+            rows.append(
+                {
+                    "component": comp,
+                    "required": req,
+                    "printed": printed,
+                    "progress": progress,
+                    "time_remaining_hhmm": minutes_to_hhmm(rem_min),
+                }
+            )
+            total_required += req
+            total_printed += printed
+            if rem_min > total_remaining_min:
+                total_remaining_min = rem_min
+        progress_items.append(
+            {
+                "product": op.product,
+                "total_required": total_required,
+                "total_printed": total_printed,
+                "progress_percent": op.progress_percent,
+                "time_remaining_hhmm": minutes_to_hhmm(total_remaining_min),
+                "rows": rows,
+            }
+        )
 
     # Produtos disponíveis para seleção no modal de impressão
     products = list(Product.objects.all())
