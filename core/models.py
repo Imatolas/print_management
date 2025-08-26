@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 from datetime import timedelta
 
 # ======== Helpers ========
@@ -175,6 +176,52 @@ class Printer(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class PrintTask(models.Model):
+    order = models.ForeignKey(
+        ProductionOrder, related_name="print_tasks", on_delete=models.CASCADE
+    )
+    component = models.ForeignKey(Component, on_delete=models.PROTECT)
+    printer = models.ForeignKey(Printer, on_delete=models.PROTECT)
+    quantity = models.PositiveIntegerField(
+        default=1, validators=[MinValueValidator(1)]
+    )
+    status = models.CharField(max_length=20, default="pending")
+
+    def clean(self):
+        if self.printer and not self.printer.is_active:
+            raise ValidationError(
+                "Impressora selecionada está inativa. Escolha outra impressora."
+            )
+        if self.quantity <= 0:
+            raise ValidationError("Quantidade deve ser maior que zero.")
+        if self.order_id and self.component_id:
+            required = self.order.required_for_component(self.component)
+            assigned = (
+                self.order.print_tasks.filter(component=self.component)
+                .exclude(pk=self.pk)
+                .aggregate(models.Sum("quantity"))["quantity__sum"]
+                or 0
+            )
+            total = assigned + self.quantity
+            if total > required:
+                raise ValidationError(
+                    f"A soma das quantidades das tarefas para o componente {self.component.name} ({total}) excede a quantidade necessária ({required}). Ajuste as tarefas."
+                )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    @property
+    def t_piece_hours(self) -> float:
+        return (self.component.print_time_min or 0) / 60.0
+
+    @property
+    def time_hours(self) -> float:
+        speed = self.printer.speed_factor or 1.0
+        return (self.quantity * self.t_piece_hours) / speed
 
 
 class WorkOrder(models.Model):
