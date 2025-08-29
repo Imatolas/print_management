@@ -114,3 +114,22 @@ class ProductionOrderTests(TestCase):
         response = self.client.post(url)
         self.assertRedirects(response, reverse("producao"))
         self.assertFalse(ProductionOrder.objects.filter(pk=order.pk).exists())
+
+
+class ProductionLogAPITests(TestCase):
+    def test_create_log(self):
+        comp = Component.objects.create(code="C1", name="Comp")
+        prod = Product.objects.create(code="P1", name="Prod")
+        BOMItem.objects.create(product=prod, component=comp, quantity=5)
+        order = ProductionOrder.objects.create(product=prod, quantity=1)
+        url = reverse("api-log-create")
+        data = {"order_id": order.id, "component_id": comp.id, "quantity": 2}
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        from .models import ProductionLog
+
+        self.assertEqual(ProductionLog.objects.count(), 1)
+        log = ProductionLog.objects.first()
+        self.assertEqual(log.order, order)
+        self.assertEqual(log.component, comp)
+        self.assertEqual(log.quantity, 2)

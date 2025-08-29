@@ -158,8 +158,10 @@ def dashboard(request):
             }
         )
 
-    # Produtos disponíveis para seleção no modal de impressão
-    products = list(Product.objects.all())
+    # Ordens abertas para seleção no modal de progresso
+    open_orders = list(
+        ProductionOrder.objects.filter(status="open").select_related("product")
+    )
 
     ctx = {
         "total_componentes": total_componentes,
@@ -168,7 +170,7 @@ def dashboard(request):
         "low_components": low_components,
         "low_products": low_products,
         "progress_items": progress_items,
-        "products": products,
+        "open_orders": open_orders,
     }
     return render(request, "dashboard.html", ctx)
 

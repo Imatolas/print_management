@@ -76,7 +76,7 @@
 
 <div class="page-header" style="margin-top:18px">
   <div class="page-title" style="font-size:20px">🖨️ Andamento das impressões</div>
-  <div class="page-actions"><button id="btn-add-printer" class="btn btn-primary">+ Adicionar impressora</button></div>
+  <div class="page-actions"><button id="btn-add-progress" class="btn btn-primary">+ Adicionar progresso</button></div>
 </div>
 <div id="print-area">
 {% if progress_items %}
@@ -112,36 +112,31 @@
   <div id="no-printing-msg" class="block"><div class="muted">Nenhuma impressão em andamento.</div></div>
 {% endif %}
 </div>
-<div id="modal-add-printer" class="modal hidden">
+<div id="modal-add-progress" class="modal hidden">
   <div class="content">
-    <div class="card-title">Adicionar impressora</div>
+    <div class="card-title">Registrar impressão</div>
     <div class="form">
       {% csrf_token %}
       <div class="field">
-        <label>Produto</label>
-        <select id="add-printer-product">
+        <label>Ordem</label>
+        <select id="add-progress-order">
           <option value="">Selecione</option>
-          {% for p in products %}
-          <option value="{{ p.id }}">{{ p.code }} — {{ p.name }}</option>
+          {% for op in open_orders %}
+          <option value="{{ op.id }}" data-product="{{ op.product.id }}">{{ op.product.code }} — {{ op.product.name }} ({{ op.quantity }})</option>
           {% endfor %}
         </select>
       </div>
       <div class="field">
         <label>Componente</label>
-        <select id="add-printer-component"></select>
+        <select id="add-progress-component"></select>
       </div>
       <div class="field">
         <label>Quantidade</label>
-        <input type="number" id="add-printer-qty" value="1" min="1">
-        <div id="add-printer-error" class="error hidden"></div>
-      </div>
-      <div class="field">
-        <label>Resumo</label>
-        <div id="add-printer-summary" class="muted">—</div>
+        <input type="number" id="add-progress-qty" value="1" min="1">
       </div>
       <div class="form-actions">
-        <button type="button" class="btn" id="add-printer-cancel">Cancelar</button>
-        <button type="button" class="btn btn-primary" id="add-printer-add">Adicionar</button>
+        <button type="button" class="btn" id="add-progress-cancel">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="add-progress-add">Adicionar</button>
       </div>
     </div>
   </div>
@@ -149,42 +144,15 @@
 {% endblock %}
 {% block extra_js %}
 <script>
-const modal=document.getElementById('modal-add-printer');
-const openBtn=document.getElementById('btn-add-printer');
+const modal=document.getElementById('modal-add-progress');
+const openBtn=document.getElementById('btn-add-progress');
 if(openBtn){openBtn.addEventListener('click',()=>modal.classList.remove('hidden'));}
-document.getElementById('add-printer-cancel').onclick=()=>modal.classList.add('hidden');
-const productSel=document.getElementById('add-printer-product');
-const compSel=document.getElementById('add-printer-component');
-const qtyInput=document.getElementById('add-printer-qty');
-const summaryEl=document.getElementById('add-printer-summary');
-const errorEl=document.getElementById('add-printer-error');
-const addBtn=document.getElementById('add-printer-add');
-const printArea=document.getElementById('print-area');
+document.getElementById('add-progress-cancel').onclick=()=>modal.classList.add('hidden');
+const orderSel=document.getElementById('add-progress-order');
+const compSel=document.getElementById('add-progress-component');
+const qtyInput=document.getElementById('add-progress-qty');
 const csrfToken=document.querySelector('[name=csrfmiddlewaretoken]').value;
-function minutesToHHMM(min){const h=Math.floor(min/60);const m=Math.round(min%60);return `${h}h${String(m).padStart(2,'0')}m`;}
-function updateSummary(){const opt=compSel.options[compSel.selectedIndex];const quantity=parseInt(qtyInput.value,10);summaryEl.textContent='—';errorEl.classList.add('hidden');addBtn.disabled=true;if(!opt||!quantity){return;}const required=parseInt(opt.dataset.required,10)||0;const printTime=parseFloat(opt.dataset.printTime)||0;if(quantity>required){errorEl.textContent='Quantidade excede o total necessário';errorEl.classList.remove('hidden');return;}fetch('/api/print-time/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify({component_id:opt.value,quantity})}).then(r=>r.ok?r.json():Promise.reject()).then(data=>{const remainingQty=required-quantity;const remainingMin=remainingQty*printTime;summaryEl.textContent=`Quantidade: ${quantity}; Tempo necessário: ${data.time_hhmm}; Tempo restante: ${minutesToHHMM(remainingMin)}`;addBtn.disabled=false;}).catch(()=>{summaryEl.textContent='—';});}
-
-productSel.onchange=function(){const pid=this.value;compSel.innerHTML='';summaryEl.textContent='—';errorEl.classList.add('hidden');if(!pid){return;}fetch(`/api/products/${pid}/components/`).then(r=>r.json()).then(data=>{data.forEach(c=>{const opt=document.createElement('option');opt.value=c.id;opt.textContent=`${c.code} — ${c.name}`;opt.dataset.required=c.total_required;opt.dataset.printTime=c.print_time_min;compSel.appendChild(opt);});updateSummary();});};
-compSel.onchange=updateSummary;
-qtyInput.oninput=updateSummary;
-addBtn.onclick=function(){
-  const componentText=compSel.options[compSel.selectedIndex]?.textContent;
-  const quantity=qtyInput.value;
-  const summary=summaryEl.textContent;
-  if(!componentText||!quantity||summary==='—')return;
-  const noMsg=document.getElementById('no-printing-msg');
-  if(noMsg)noMsg.remove();
-  const card=document.createElement('div');
-  card.className='printer-card';
-  card.innerHTML=`<div class="card-title">${componentText}</div>`+
-    `<div class="muted">${summary.replace(/; /g,'<br>')}</div>`;
-  printArea.appendChild(card);
-  modal.classList.add('hidden');
-  productSel.value='';
-  compSel.innerHTML='';
-  qtyInput.value=1;
-  summaryEl.textContent='—';
-  errorEl.classList.add('hidden');
-};
+orderSel.onchange=function(){const opt=this.options[this.selectedIndex];const pid=opt?opt.dataset.product:null;compSel.innerHTML='';if(!pid){return;}fetch(`/api/products/${pid}/components/`).then(r=>r.json()).then(data=>{data.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.code} — ${c.name}`;compSel.appendChild(o);});});};
+document.getElementById('add-progress-add').onclick=function(){const orderId=orderSel.value;const componentId=compSel.value;const quantity=qtyInput.value;if(!orderId||!componentId||!quantity)return;fetch('/api/logs/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify({order_id:orderId,component_id:componentId,quantity})}).then(r=>{if(r.ok)location.reload();});};
 </script>
 {% endblock %}
