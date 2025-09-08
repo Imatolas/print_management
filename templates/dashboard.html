@@ -94,7 +94,7 @@
         <span>Tempo restante: {{ item.time_remaining_hhmm|default:"—" }}</span>
       </div>
       <table style="margin-top:12px">
-        <thead><tr><th>Componente</th><th class="right">Qtd impressa</th><th style="width:260px">Progresso</th><th class="right">Tempo restante</th></tr></thead>
+        <thead><tr><th>Componente</th><th class="right">Qtd impressa</th><th style="width:260px">Progresso</th><th class="right">Tempo restante</th><th>Ação</th></tr></thead>
         <tbody>
           {% for r in item.rows %}
           <tr>
@@ -102,6 +102,7 @@
             <td class="right">{{ r.printed|default:0|floatformat:0 }} / {{ r.required|default:0|floatformat:0 }}</td>
             <td><div class="progress"><span style="width: {{ r.progress|default:0|floatformat:0 }}%;"></span></div></td>
             <td class="right">{{ r.time_remaining_hhmm|default:"—" }}</td>
+            <td><button class="btn btn-sm log-print-btn" data-order-id="{{ item.order_id }}" data-component-id="{{ r.component.id }}" data-component-name="{{ r.component.code }} — {{ r.component.name }}" data-remaining="{{ r.remaining|default:0|floatformat:0 }}">Registrar</button></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -111,6 +112,27 @@
 {% else %}
   <div id="no-printing-msg" class="block"><div class="muted">Nenhuma impressão em andamento.</div></div>
 {% endif %}
+</div>
+<div id="modal-log-print" class="modal hidden">
+  <div class="content">
+    <div class="card-title">Registrar impressão</div>
+    <div class="form">
+      {% csrf_token %}
+      <div class="field">
+        <label>Componente</label>
+        <div id="log-print-component" class="muted">—</div>
+      </div>
+      <div class="field">
+        <label>Quantidade</label>
+        <input type="number" id="log-print-qty" value="1" min="1">
+        <div id="log-print-error" class="error hidden"></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn" id="log-print-cancel">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="log-print-save">Adicionar</button>
+      </div>
+    </div>
+  </div>
 </div>
 <div id="modal-add-printer" class="modal hidden">
   <div class="content">
@@ -185,6 +207,30 @@ addBtn.onclick=function(){
   qtyInput.value=1;
   summaryEl.textContent='—';
   errorEl.classList.add('hidden');
+};
+
+const logModal=document.getElementById('modal-log-print');
+const logComponent=document.getElementById('log-print-component');
+const logQty=document.getElementById('log-print-qty');
+const logError=document.getElementById('log-print-error');
+const logSave=document.getElementById('log-print-save');
+const logCancel=document.getElementById('log-print-cancel');
+let logData=null;
+document.querySelectorAll('.log-print-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    logData={orderId:btn.dataset.orderId,componentId:btn.dataset.componentId,remaining:parseInt(btn.dataset.remaining,10)||0};
+    logComponent.textContent=btn.dataset.componentName;
+    logQty.value=1;
+    logQty.max=logData.remaining||'';
+    logError.classList.add('hidden');
+    logModal.classList.remove('hidden');
+  });
+});
+logCancel.onclick=()=>logModal.classList.add('hidden');
+logSave.onclick=function(){
+  const qty=parseInt(logQty.value,10);
+  if(!qty||qty>logData.remaining){logError.textContent='Quantidade inválida';logError.classList.remove('hidden');return;}
+  fetch('/api/log-print/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify({order_id:logData.orderId,component_id:logData.componentId,quantity:qty})}).then(r=>{if(r.ok){location.reload();}else{logError.textContent='Erro ao registrar';logError.classList.remove('hidden');}}).catch(()=>{logError.textContent='Erro ao registrar';logError.classList.remove('hidden');});
 };
 </script>
 {% endblock %}

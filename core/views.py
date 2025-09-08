@@ -139,6 +139,7 @@ def dashboard(request):
                     "component": comp,
                     "required": req,
                     "printed": printed,
+                    "remaining": max(0, req - printed),
                     "progress": progress,
                     "time_remaining_hhmm": minutes_to_hhmm(rem_min),
                 }
@@ -149,6 +150,7 @@ def dashboard(request):
                 total_remaining_min = rem_min
         progress_items.append(
             {
+                "order_id": op.id,
                 "product": op.product,
                 "total_required": total_required,
                 "total_printed": total_printed,

@@ -1,7 +1,15 @@
 from django.http import JsonResponse
 from django.views import View
 from django.shortcuts import get_object_or_404
-from .models import Printer, WorkOrder, minutes_to_hhmm, Product, Component
+from .models import (
+    Printer,
+    WorkOrder,
+    minutes_to_hhmm,
+    Product,
+    Component,
+    ProductionOrder,
+    ProductionLog,
+)
 from .scheduling import (
     load_printers_active,
     expand_workorder_to_tasks,
@@ -143,3 +151,29 @@ class PrintTimeAPIView(APIView):
             "time_min": total_minutes,
             "time_hhmm": minutes_to_hhmm(total_minutes),
         })
+
+
+class LogPrintAPIView(APIView):
+    def post(self, request):
+        data = getattr(request, "data", None)
+        if data is None:
+            try:
+                import json
+                data = json.loads(request.body.decode() or "{}")
+            except Exception:
+                data = {}
+        order_id = data.get("order_id")
+        component_id = data.get("component_id")
+        quantity = int(data.get("quantity", 0))
+        order = get_object_or_404(ProductionOrder, pk=order_id)
+        component = get_object_or_404(Component, pk=component_id)
+        remaining = order.required_for_component(component) - order.printed_for_component(component)
+        if quantity <= 0 or quantity > remaining:
+            return Response({"error": "Quantidade inválida"}, status=400)
+        log = ProductionLog.objects.create(order=order, component=component, quantity=quantity)
+        try:
+            component.qty_on_hand = max(0, component.qty_on_hand - quantity)
+            component.save()
+        except Exception:
+            pass
+        return Response({"id": log.id})
